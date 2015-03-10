@@ -21,7 +21,13 @@
     "andThen",
     "currentURL",
     "currentPath",
-    "currentRouteName"
+    "currentRouteName",
+    "describe",
+    "it",
+    "before",
+    "beforeEach",
+    "after",
+    "afterEach"
   ],
   "node": false,
   "browser": false,
@@ -31,6 +37,7 @@
   "devel": false,
   "eqeqeq": true,
   "evil": true,
+  "expr": true,
   "forin": false,
   "immed": false,
   "laxbreak": false,
