@@ -1,7 +1,7 @@
 {
   "name": "ember-cli-release",
   "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "Ember CLI addon for managing release versions.",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -11,7 +11,10 @@
     "build": "ember build",
     "test": "node tests/runner.js"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lytics/ember-cli-release.git"
+  },
   "engines": {
     "node": ">= 0.10.0"
   },
@@ -26,7 +29,11 @@
     "mocha": "^2.2.1"
   },
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "ember-cli",
+    "release",
+    "git",
+    "tag"
   ],
   "ember-addon": {
     "configPath": "tests/dummy/config"
