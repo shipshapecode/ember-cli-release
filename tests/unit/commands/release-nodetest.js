@@ -171,7 +171,7 @@ describe("release command", function() {
           return null;
         });
 
-        return cmd.validateAndRun([ '--tag=foo', '--local' ]).then(function() {
+        return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
           expect(createdTagName).to.equal('foo');
           expect(createdTagMessage ).to.equal('Release foo');
           expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
@@ -193,7 +193,7 @@ describe("release command", function() {
           return null;
         });
 
-        return cmd.validateAndRun([ '--message="Tag %@"', '--local' ]).then(function() {
+        return cmd.validateAndRun([ '--message', 'Tag %@', '--local' ]).then(function() {
           expect(createdTagName).to.equal(nextTag);
           expect(createdTagMessage ).to.equal('Tag ' + nextTag);
           expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
@@ -227,7 +227,7 @@ describe("release command", function() {
           return null;
         });
 
-        return cmd.validateAndRun([ '--strategy=foo', '--local', '--major', '--format', '"' + dateFormat + '"', '--timezone="' + timezone + '"' ]).then(function() {
+        return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--major', '--format', dateFormat, '--timezone', timezone ]).then(function() {
           expect(createdTagName).to.equal('foo');
           expect(strategyTags).to.deep.equal(tagNames);
           expect(strategyOptions.major).to.be.true;
@@ -253,7 +253,7 @@ describe("release command", function() {
           return null;
         });
 
-        return cmd.validateAndRun([ '--remote=foo' ]).then(function() {
+        return cmd.validateAndRun([ '--remote', 'foo' ]).then(function() {
           expect(pushRemote).to.equal('foo');
           expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
           expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' and pushed to remote '" + pushRemote + "'.");
