@@ -18,7 +18,7 @@
   "engines": {
     "node": ">= 0.10.0"
   },
-  "author": "",
+  "author": "Steven Lindberg <steven@lytics.io>",
   "license": "MIT",
   "devDependencies": {
     "chai": "^2.1.1",
