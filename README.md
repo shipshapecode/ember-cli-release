@@ -25,7 +25,7 @@ It will:
 
   1. Assume that the project uses the [SemVer](http://semver.org/) versioning scheme
   2. Find the latest tag that is SemVer compliant and increment its PATCH version
-  3. Create a git tag with the new version and push it to `origin`
+  3. Create a lightweight git tag with the new version and push it to `origin`
 
 ### Options
 
@@ -35,23 +35,23 @@ Also available through `ember help`:
 - `--remote` (default: `origin`) - The git remote to push new tags to, ignored if `--local` is true
 - `--yes` (default: `false`) - Whether to skip confirmation prompts or not (answer 'yes' to all questions)
 - `--tag` (default: `null`) - Optional name of the tag to create, overrides versioning strategies
-- `--message` (default: `Release %@`) - Message to add to the annotated git tag, where `%@` is replaced with tag name
+- `--annotation` (default: `null`)- Message to add when creating a tag, [indicates that the tag should be annotated](http://git-scm.com/book/tr/v2/Git-Basics-Tagging#Annotated-Tags), where `%@` is replaced with tag name
 - `--strategy` (default: `semver`) - The versioning strategy to use, either `semver` or `date`
 - `--major` (default: `false`) - Increment the MAJOR SemVer version, takes precedence over `--minor`
 - `--minor` (default: `false`) - Increment the MINOR SemVer version, if both `--major` and `--minor` are false, PATCH is incremented
 - `--format` (default: `YYYY.MM.DD`) - The format string used when creating a tag based on the current date, uses [`moment().format()`](http://momentjs.com/docs/#/displaying/format/)
 - `--timezone` (default: `UTC`) - The timezone to consider the current date in
 
-So for example, to create a new tag based on the date in east cost time with a custom format and message:
+So for example, to create a new tag based on the date in east cost time with a custom format:
 
 ```sh
 $ ember release --strategy=date --format="YYYY-MM-DD" --timezone="America/New_York"
 ```
 
-Or to create a specific tag (no versioning strategy) with a custom message, locally only:
+Or to create a specific tag (no versioning strategy) with annotation, locally only:
 
 ```sh
-$ ember release --local --tag="what_am_i_doing" --message="First version wooooo!"
+$ ember release --local --tag="what_am_i_doing" --annotation="First version wooooo!"
 ```
 
 ## Roadmap
@@ -75,7 +75,7 @@ $ ember release --local --tag="what_am_i_doing" --message="First version wooooo!
   - Skip if working tree is clean
   - Use `--message` option with available replacement of new version (default: `Released %@`)
 6. ☑ Create tag
-  1. Tag the latest commit with new version using the `--tag-message` option (default: `Release %@`)
+  1. Tag the latest commit with new version using the `--annotation` option if specified
   2. Stop if `--local` option is true
 7. ☑ Push to remote
   - Push commits and tags to remote specified by `--remote` option (default: `origin`)

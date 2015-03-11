@@ -156,7 +156,7 @@ describe("release command", function() {
         });
       });
 
-      it("should use the tag name specified by the --tag option with a default message", function() {
+      it("should use the tag name specified by the --tag option", function() {
         var createdTagName, createdTagMessage;
         var cmd = createCommand();
 
@@ -173,12 +173,12 @@ describe("release command", function() {
 
         return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
           expect(createdTagName).to.equal('foo');
-          expect(createdTagMessage ).to.equal('Release foo');
+          expect(createdTagMessage).to.be.falsey;
           expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
         });
       });
 
-      it("should use the message specified by the --message option", function() {
+      it("should use the message specified by the --annotation option", function() {
         var createdTagName, createdTagMessage;
         var cmd = createCommand();
 
@@ -193,7 +193,7 @@ describe("release command", function() {
           return null;
         });
 
-        return cmd.validateAndRun([ '--message', 'Tag %@', '--local' ]).then(function() {
+        return cmd.validateAndRun([ '--annotation', 'Tag %@', '--local' ]).then(function() {
           expect(createdTagName).to.equal(nextTag);
           expect(createdTagMessage ).to.equal('Tag ' + nextTag);
           expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
