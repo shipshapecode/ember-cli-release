@@ -1,5 +1,8 @@
 # ember-cli-release
 
+[![Build Status](https://travis-ci.org/lytics/ember-cli-release.svg?branch=master)](https://travis-ci.org/lytics/ember-cli-release)
+[![npm version](https://badge.fury.io/js/ember-cli-release.svg)](http://badge.fury.io/js/ember-cli-release)
+
 Ember CLI addon that defines a `release` command for bumping the version of your app or addon.
 
 ## Installation
