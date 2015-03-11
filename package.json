@@ -1,14 +1,11 @@
 {
   "name": "ember-cli-release",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ember CLI addon for managing release versions.",
   "directories": {
-    "doc": "doc",
     "test": "tests"
   },
   "scripts": {
-    "start": "ember server",
-    "build": "ember build",
     "test": "node tests/runner.js"
   },
   "repository": {
@@ -20,6 +17,13 @@
   },
   "author": "Steven Lindberg <steven@lytics.io>",
   "license": "MIT",
+  "dependencies": {
+    "chalk": "^1.0.0",
+    "git-tools": "^0.1.4",
+    "moment-timezone": "^0.3.0",
+    "rsvp": "^3.0.17",
+    "semver": "^4.3.1"
+  },
   "devDependencies": {
     "chai": "^2.1.1",
     "ember-cli": "0.2.0",
@@ -37,12 +41,5 @@
   ],
   "ember-addon": {
     "configPath": "tests/dummy/config"
-  },
-  "dependencies": {
-    "chalk": "^1.0.0",
-    "git-tools": "^0.1.4",
-    "moment-timezone": "^0.3.0",
-    "rsvp": "^3.0.17",
-    "semver": "^4.3.1"
   }
 }
