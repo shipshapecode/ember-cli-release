@@ -134,6 +134,16 @@ describe("release command", function() {
         });
       });
 
+      it("should skip confirmation prompts when --yes option is set", function() {
+        var cmd = createCommand();
+
+        repo.respondTo('createTag', makeResponder(null));
+
+        return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+          expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "'.");
+        });
+      });
+
       it("should print the latest tag if returned by versioning strategy", function() {
         var cmd = createCommand();
 

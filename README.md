@@ -30,6 +30,7 @@ Also available through `ember help`:
 
 - `--local` (default: `false`) - Whether to only create the git tag locally or not
 - `--remote` (default: `origin`) - The git remote to push new tags to, ignored if `--local` is true
+- `--yes` (default: `false`) - Whether to skip confirmation prompts or not (answer 'yes' to all questions)
 - `--tag` (default: `null`) - Optional name of the tag to create, overrides versioning strategies
 - `--message` (default: `Release %@`) - Message to add to the annotated git tag, where `%@` is replaced with tag name
 - `--strategy` (default: `semver`) - The versioning strategy to use, either `semver` or `date`
