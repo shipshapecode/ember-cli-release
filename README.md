@@ -68,18 +68,19 @@ $ ember release --local --tag="what_am_i_doing" --annotation="First version wooo
       1. Create tag name based on current date and `--format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-4. ◻ Search/replace most recent version with new version
-  1. Search all project files for most recent version, ignore if path matches any rule in `.gitignore`
-  2. Display surrounding diff and prompt user for replacement of each instance
-5. ◻ Commit changes
-  - Skip if working tree is clean
-  - Use `--message` option with available replacement of new version (default: `Released %@`)
-6. ☑ Create tag
+4. ◻ Replace `version` property of \*.json files in root dir (package.json/bower.json)
+5. ◻ Search/replace whitelisted files with new version
+6. ◻ Invoke build function / run `ember build` if `--build` is true
+7. ◻ Invoke changelog config function if available with last/next versions
+8. ◻ Commit changes
+  1. Prompt to continue if working tree is clean
+  2. Use `--message` option with available replacement of new version (default: `Released %@`)
+9. ☑ Create tag
   1. Tag the latest commit with new version using the `--annotation` option if specified
   2. Stop if `--local` option is true
-7. ☑ Push to remote
+10. ☑ Push to remote
   - Push commits and tags to remote specified by `--remote` option (default: `origin`)
-8. ◻ NPM Publish
+11. ◻ NPM Publish
   - Stop if `--publish` option is false (default: `false`)
   - Publish package to NPM using current name/password
 
