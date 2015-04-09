@@ -29,8 +29,10 @@
     "chai": "^2.1.1",
     "ember-cli": "0.2.0",
     "ember-cli-dependency-checker": "0.0.8",
+    "fs-extra": "^0.18.0",
     "glob": "^5.0.1",
-    "mocha": "^2.2.1"
+    "mocha": "^2.2.1",
+    "rimraf": "^2.3.2"
   },
   "keywords": [
     "ember-addon",
