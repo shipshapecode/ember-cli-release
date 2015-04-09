@@ -3,6 +3,7 @@
 'use strict';
 
 var expect         = require('chai').expect;
+var path           = require('path');
 var merge          = require('merge');
 var MockUI         = require('ember-cli/tests/helpers/mock-ui');
 var MockAnalytics  = require('ember-cli/tests/helpers/mock-analytics');
@@ -26,6 +27,7 @@ describe("release command", function() {
     repo = new MockRepo();
 
     project = {
+      root: path.resolve(__dirname, '../../fixtures/project-with-no-config'),
       isEmberCLIProject: function(){
         return true;
       }
