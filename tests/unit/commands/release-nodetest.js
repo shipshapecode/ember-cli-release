@@ -3,7 +3,10 @@
 'use strict';
 
 var expect         = require('chai').expect;
+var fs             = require('fs-extra');
+var path           = require('path');
 var merge          = require('merge');
+var rimraf         = require('rimraf');
 var MockUI         = require('ember-cli/tests/helpers/mock-ui');
 var MockAnalytics  = require('ember-cli/tests/helpers/mock-analytics');
 var Command        = require('ember-cli/lib/models/command');
@@ -12,6 +15,12 @@ var ReleaseCommand = require('../../../lib/commands/release');
 var EOL            = require('os').EOL;
 
 var RSVP = require('rsvp');
+var rootPath = process.cwd();
+var fixturePath = path.join(rootPath, 'tests/fixtures');
+
+function copyFixture(name) {
+  fs.copySync(path.join(fixturePath, name), '.');
+}
 
 describe("release command", function() {
   var ui;
@@ -25,11 +34,20 @@ describe("release command", function() {
     analytics = new MockAnalytics();
     repo = new MockRepo();
 
+    rimraf.sync('tmp');
+    fs.mkdirSync('tmp');
+    process.chdir('tmp');
+
     project = {
+      root: path.resolve('.'),
       isEmberCLIProject: function(){
         return true;
       }
     };
+  });
+
+  afterEach(function() {
+    process.chdir(rootPath);
   });
 
   function makeResponder(value) {
@@ -153,6 +171,38 @@ describe("release command", function() {
 
         return cmd.validateAndRun([ '--local' ]).then(function() {
           expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
+        });
+      });
+
+      it("should replace the 'version' property in package.json and bower.json", function() {
+        var cmd = createCommand();
+
+        copyFixture('project-with-no-config');
+
+        repo.respondTo('createTag', makeResponder(null));
+
+        return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+          var pkg = JSON.parse(fs.readFileSync('./package.json'));
+          var bower = JSON.parse(fs.readFileSync('./bower.json'));
+
+          expect(pkg.version).to.equal(nextTag);
+          expect(bower.version).to.equal(nextTag);
+        });
+      });
+
+      it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
+        var cmd = createCommand();
+
+        copyFixture('project-with-no-versions');
+
+        repo.respondTo('createTag', makeResponder(null));
+
+        return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+          var pkg = JSON.parse(fs.readFileSync('./package.json'));
+          var bower = JSON.parse(fs.readFileSync('./bower.json'));
+
+          expect(pkg.version).to.be.undefined;
+          expect(bower.version).to.be.undefined;
         });
       });
 
