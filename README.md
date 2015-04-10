@@ -68,7 +68,7 @@ $ ember release --local --tag="what_am_i_doing" --annotation="First version wooo
       1. Create tag name based on current date and `--format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-4. ◻ Replace `version` property of \*.json files in root dir (package.json/bower.json)
+4. ☑ Replace `version` property of \*.json files in root dir (package.json/bower.json)
 5. ◻ Search/replace whitelisted files with new version
 6. ◻ Invoke build function / run `ember build` if `--build` is true
 7. ◻ Invoke changelog config function if available with last/next versions

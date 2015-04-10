@@ -3,19 +3,23 @@
 'use strict';
 
 var RSVP = require('rsvp');
+var GitRepo = require('../../lib/utils/git');
 
 function MockRepo() {
   this._callbacks = {};
 }
 
 var MockRepoPrototype = MockRepo.prototype;
+var GitRepoPrototype = GitRepo.prototype;
 
-var repoMethods = [
-  'tags',
-  'currentTag',
-  'createTag',
-  'pushTags'
-];
+var repoMethods = [];
+
+Object.keys(GitRepoPrototype).forEach(function(methodName) {
+  // Ignore the constructor
+  if (GitRepoPrototype[methodName] !== GitRepo) {
+    repoMethods.push(methodName);
+  }
+});
 
 MockRepoPrototype.respondTo = function(methodName, callback) {
   this._callbacks[methodName] = callback;
