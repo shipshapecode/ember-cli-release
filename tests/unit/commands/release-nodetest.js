@@ -40,6 +40,9 @@ describe("release command", function() {
 
     project = {
       root: path.resolve('.'),
+      require: function() {
+        return Error;
+      },
       isEmberCLIProject: function(){
         return true;
       }
@@ -83,8 +86,8 @@ describe("release command", function() {
 
       repo.respondTo('currentTag', makeResponder('v1.3.0'));
 
-      return cmd.validateAndRun().then(function() {
-        expect(ui.output).to.contain('Skipped tagging, HEAD already at tag: v1.3.0');
+      return cmd.validateAndRun().catch(function(error) {
+        expect(error.message).to.equals('Skipped tagging, HEAD already at tag: v1.3.0');
       });
     });
   });
@@ -105,7 +108,8 @@ describe("release command", function() {
 
         return cmd.validateAndRun([ '--local' ]).then(function() {
           expect(ui.output).to.contain("Your working tree contains modifications that will be added to the release commit, proceed?");
-          expect(ui.output).to.contain("Aborted.");
+        }).catch(function(error) {
+          expect(error.message).to.equals("Aborted.");
         });
       });
     });
@@ -178,7 +182,8 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--local' ]).then(function() {
               expect(ui.output).to.contain("About to create tag '" + nextTag + "', proceed?");
-              expect(ui.output).to.contain("Aborted.");
+            }).catch(function(error) {
+              expect(error.message).to.equals("Aborted.");
             });
           });
 
@@ -195,11 +200,9 @@ describe("release command", function() {
           it("should print the latest tag if returned by versioning strategy", function() {
             var cmd = createCommand();
 
-            ui.waitForPrompt().then(function() {
-              ui.inputStream.write('n' + EOL);
-            });
+            repo.respondTo('createTag', makeResponder(null));
 
-            return cmd.validateAndRun([ '--local' ]).then(function() {
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
             });
           });
@@ -357,8 +360,8 @@ describe("release command", function() {
             it("should abort with an informative message", function() {
               var cmd = createCommand();
 
-              return cmd.validateAndRun([]).then(function() {
-                expect(ui.output).to.contain("Must have a branch checked out to commit to");
+              return cmd.validateAndRun([]).catch(function(error) {
+                expect(error.message).to.equals("Must have a branch checked out to commit to");
               });
             });
           });
