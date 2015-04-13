@@ -310,7 +310,7 @@ describe("release command", function() {
         });
 
         it("should push tags to the remote specified by the --remote option if the --local option is false", function() {
-          var pushRemote;
+          var pushRemote, tagName;
           var cmd = createCommand();
 
           ui.waitForPrompt().then(function() {
@@ -319,14 +319,16 @@ describe("release command", function() {
 
           repo.respondTo('createTag', makeResponder(null));
 
-          repo.respondTo('pushTags', function(remote) {
+          repo.respondTo('push', function(remote, tag) {
             pushRemote = remote;
+            tagName = tag;
 
             return null;
           });
 
           return cmd.validateAndRun([ '--remote', 'foo' ]).then(function() {
             expect(pushRemote).to.equal('foo');
+            expect(tagName).to.equal(nextTag);
             expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
             expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' and pushed to remote '" + pushRemote + "'.");
           });
