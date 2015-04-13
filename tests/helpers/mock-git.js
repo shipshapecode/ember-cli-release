@@ -22,19 +22,22 @@ Object.keys(GitRepoPrototype).forEach(function(methodName) {
 });
 
 MockRepoPrototype.respondTo = function(methodName, callback) {
-  this._callbacks[methodName] = callback;
+  if (!this._callbacks[methodName]) {
+    this._callbacks[methodName] = [];
+  }
+
+  this._callbacks[methodName].push(callback);
 };
 
 repoMethods.forEach(function(methodName) {
   MockRepoPrototype[methodName] = function() {
-    if (typeof this._callbacks[methodName] !== 'function') {
+    var callbacks = this._callbacks[methodName];
+
+    if (!callbacks || !callbacks.length) {
       throw new Error("MockGit method '" + methodName + "' called but no handler was provided");
     }
 
-    var response = this._callbacks[methodName].apply(null, arguments);
-
-    // Make sure subsequent calls are handled
-    delete this._callbacks[methodName];
+    var response = callbacks.shift().apply(null, arguments);
 
     return RSVP.Promise.resolve(response);
   };

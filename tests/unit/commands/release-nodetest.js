@@ -114,11 +114,15 @@ describe("release command", function() {
       beforeEach(function() {
         repo.respondTo('currentTag', makeResponder(null));
         repo.respondTo('status', makeResponder(''));
-        repo.respondTo('tags', makeResponder([]));
       });
 
       describe("when repo has no existing tags", function() {
         var defaultTag = 'v0.1.0';
+
+        beforeEach(function() {
+          repo.respondTo('tags', makeResponder([]));
+          repo.respondTo('status', makeResponder(''));
+        });
 
         it("should create a default semver tag", function() {
           var createdTagName;
@@ -136,7 +140,7 @@ describe("release command", function() {
 
           return cmd.validateAndRun([ '--local' ]).then(function() {
             expect(createdTagName).to.equal(defaultTag);
-            expect(ui.output).to.contain("Succesfully created git tag '" + defaultTag + "'.");
+            expect(ui.output).to.contain("Succesfully created git tag '" + defaultTag + "' locally.");
           });
         });
       });
@@ -157,180 +161,249 @@ describe("release command", function() {
         ];
 
         beforeEach(function() {
-          repo.respondTo('currentTag', makeResponder(null));
           repo.respondTo('tags', makeResponder(tags));
         });
 
-        it("should confirm tag creation and allow aborting", function() {
-          var cmd = createCommand();
-
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('n' + EOL);
+        describe("when working copy is not changed", function() {
+          beforeEach(function() {
+            repo.respondTo('status', makeResponder(''));
           });
 
-          return cmd.validateAndRun([ '--local' ]).then(function() {
-            expect(ui.output).to.contain("About to create tag '" + nextTag + "', proceed?");
-            expect(ui.output).to.contain("Aborted.");
-          });
-        });
+          it("should confirm tag creation and allow aborting", function() {
+            var cmd = createCommand();
 
-        it("should skip confirmation prompts when --yes option is set", function() {
-          var cmd = createCommand();
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('n' + EOL);
+            });
 
-          repo.respondTo('createTag', makeResponder(null));
-
-          return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-            expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "'.");
-          });
-        });
-
-        it("should print the latest tag if returned by versioning strategy", function() {
-          var cmd = createCommand();
-
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('n' + EOL);
+            return cmd.validateAndRun([ '--local' ]).then(function() {
+              expect(ui.output).to.contain("About to create tag '" + nextTag + "', proceed?");
+              expect(ui.output).to.contain("Aborted.");
+            });
           });
 
-          return cmd.validateAndRun([ '--local' ]).then(function() {
-            expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
-          });
-        });
+          it("should skip confirmation prompts when --yes option is set", function() {
+            var cmd = createCommand();
 
-        it("should replace the 'version' property in package.json and bower.json", function() {
-          var cmd = createCommand();
+            repo.respondTo('createTag', makeResponder(null));
 
-          copyFixture('project-with-no-config');
-
-          repo.respondTo('createTag', makeResponder(null));
-
-          return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-            var pkg = JSON.parse(fs.readFileSync('./package.json'));
-            var bower = JSON.parse(fs.readFileSync('./bower.json'));
-
-            expect(pkg.version).to.equal(nextTag);
-            expect(bower.version).to.equal(nextTag);
-          });
-        });
-
-        it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
-          var cmd = createCommand();
-
-          copyFixture('project-with-no-versions');
-
-          repo.respondTo('createTag', makeResponder(null));
-
-          return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-            var pkg = JSON.parse(fs.readFileSync('./package.json'));
-            var bower = JSON.parse(fs.readFileSync('./bower.json'));
-
-            expect(pkg.version).to.be.undefined;
-            expect(bower.version).to.be.undefined;
-          });
-        });
-
-        it("should use the tag name specified by the --tag option", function() {
-          var createdTagName, createdTagMessage;
-          var cmd = createCommand();
-
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('y' + EOL);
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' locally.");
+            });
           });
 
-          repo.respondTo('createTag', function(tagName, message) {
-            createdTagName = tagName;
-            createdTagMessage = message;
+          it("should print the latest tag if returned by versioning strategy", function() {
+            var cmd = createCommand();
 
-            return null;
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('n' + EOL);
+            });
+
+            return cmd.validateAndRun([ '--local' ]).then(function() {
+              expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
+            });
           });
 
-          return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
-            expect(createdTagName).to.equal('foo');
-            expect(createdTagMessage).to.be.falsey;
-            expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
-          });
-        });
+          it("should replace the 'version' property in package.json and bower.json", function() {
+            var cmd = createCommand();
 
-        it("should use the message specified by the --annotation option", function() {
-          var createdTagName, createdTagMessage;
-          var cmd = createCommand();
+            copyFixture('project-with-no-config');
 
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('y' + EOL);
-          });
+            repo.respondTo('createTag', makeResponder(null));
 
-          repo.respondTo('createTag', function(tagName, message) {
-            createdTagName = tagName;
-            createdTagMessage = message;
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var pkg = JSON.parse(fs.readFileSync('./package.json'));
+              var bower = JSON.parse(fs.readFileSync('./bower.json'));
 
-            return null;
+              expect(pkg.version).to.equal(nextTag);
+              expect(bower.version).to.equal(nextTag);
+            });
           });
 
-          return cmd.validateAndRun([ '--annotation', 'Tag %@', '--local' ]).then(function() {
-            expect(createdTagName).to.equal(nextTag);
-            expect(createdTagMessage ).to.equal('Tag ' + nextTag);
-            expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
+          it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
+            var cmd = createCommand();
+
+            copyFixture('project-with-no-versions');
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var pkg = JSON.parse(fs.readFileSync('./package.json'));
+              var bower = JSON.parse(fs.readFileSync('./bower.json'));
+
+              expect(pkg.version).to.be.undefined;
+              expect(bower.version).to.be.undefined;
+            });
           });
-        });
 
-        it("should use the strategy specified by the --strategy option, passing tags and options", function() {
-          var tagNames = tags.map(function(tag) { return tag.name; });
-          var createdTagName, strategyTags, strategyOptions;
-          var dateFormat = 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]';
-          var timezone = 'America/Los_Angeles';
+          it("should use the tag name specified by the --tag option", function() {
+            var createdTagName, createdTagMessage;
+            var cmd = createCommand();
 
-          var cmd = createCommand({
-            strategies: {
-              foo: function(tags, options) {
-                strategyTags = tags;
-                strategyOptions = options;
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
 
-                return { next: 'foo' };
+            repo.respondTo('createTag', function(tagName, message) {
+              createdTagName = tagName;
+              createdTagMessage = message;
+
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
+              expect(createdTagName).to.equal('foo');
+              expect(createdTagMessage).to.be.falsey;
+              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+
+          it("should use the message specified by the --annotation option", function() {
+            var createdTagName, createdTagMessage;
+            var cmd = createCommand();
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('createTag', function(tagName, message) {
+              createdTagName = tagName;
+              createdTagMessage = message;
+
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--annotation', 'Tag %@', '--local' ]).then(function() {
+              expect(createdTagName).to.equal(nextTag);
+              expect(createdTagMessage ).to.equal('Tag ' + nextTag);
+              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+
+          it("should use the strategy specified by the --strategy option, passing tags and options", function() {
+            var tagNames = tags.map(function(tag) { return tag.name; });
+            var createdTagName, strategyTags, strategyOptions;
+            var dateFormat = 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]';
+            var timezone = 'America/Los_Angeles';
+
+            var cmd = createCommand({
+              strategies: {
+                foo: function(tags, options) {
+                  strategyTags = tags;
+                  strategyOptions = options;
+
+                  return { next: 'foo' };
+                }
               }
-            }
+            });
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('createTag', function(tagName) {
+              createdTagName = tagName;
+
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--major', '--format', dateFormat, '--timezone', timezone ]).then(function() {
+              expect(createdTagName).to.equal('foo');
+              expect(strategyTags).to.deep.equal(tagNames);
+              expect(strategyOptions.major).to.be.true;
+              expect(strategyOptions.format).to.equal(dateFormat);
+              expect(strategyOptions.timezone).to.equal(timezone);
+              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+            });
           });
 
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('y' + EOL);
-          });
+          it("should push tags to the remote specified by the --remote option if the --local option is false", function() {
+            var pushRemote, tagName;
+            var cmd = createCommand();
 
-          repo.respondTo('createTag', function(tagName) {
-            createdTagName = tagName;
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
 
-            return null;
-          });
+            repo.respondTo('createTag', makeResponder(null));
 
-          return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--major', '--format', dateFormat, '--timezone', timezone ]).then(function() {
-            expect(createdTagName).to.equal('foo');
-            expect(strategyTags).to.deep.equal(tagNames);
-            expect(strategyOptions.major).to.be.true;
-            expect(strategyOptions.format).to.equal(dateFormat);
-            expect(strategyOptions.timezone).to.equal(timezone);
-            expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "'.");
+            repo.respondTo('push', function(remote, tag) {
+              pushRemote = remote;
+              tagName = tag;
+
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--remote', 'foo' ]).then(function() {
+              expect(pushRemote).to.equal('foo');
+              expect(tagName).to.equal(nextTag);
+              expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
+              expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' locally.");
+              expect(ui.output).to.contain("Succesfully pushed '" + nextTag + "' to remote '" + pushRemote + "'.");
+            });
           });
         });
 
-        it("should push tags to the remote specified by the --remote option if the --local option is false", function() {
-          var pushRemote, tagName;
-          var cmd = createCommand();
-
-          ui.waitForPrompt().then(function() {
-            ui.inputStream.write('y' + EOL);
+        describe("when working copy is changed", function() {
+          beforeEach(function() {
+            repo.respondTo('status', makeResponder('M package.json'));
           });
 
-          repo.respondTo('createTag', makeResponder(null));
+          describe("when repo is in detached HEAD state", function() {
+            beforeEach(function() {
+              repo.respondTo('currentBranch', makeResponder(null));
+            });
 
-          repo.respondTo('push', function(remote, tag) {
-            pushRemote = remote;
-            tagName = tag;
+            it("should abort with an informative message", function() {
+              var cmd = createCommand();
 
-            return null;
+              return cmd.validateAndRun([]).then(function() {
+                expect(ui.output).to.contain("Must have a branch checked out to commit to");
+              });
+            });
           });
 
-          return cmd.validateAndRun([ '--remote', 'foo' ]).then(function() {
-            expect(pushRemote).to.equal('foo');
-            expect(tagName).to.equal(nextTag);
-            expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
-            expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' and pushed to remote '" + pushRemote + "'.");
+          describe("when a branch is currently checked out", function() {
+            beforeEach(function() {
+              repo.respondTo('currentBranch', makeResponder('master'));
+            });
+
+            it("should create a new commit with the correct message name", function() {
+              var commitMessage;
+              var cmd = createCommand();
+
+              repo.respondTo('commitAll', function(message) {
+                commitMessage = message;
+
+                return null;
+              });
+
+              repo.respondTo('createTag', makeResponder(null));
+
+              return cmd.validateAndRun([ '--message', 'Foo %@', '--local', '--yes' ]).then(function() {
+                expect(commitMessage).to.equal('Foo ' + nextTag);
+                expect(ui.output).to.contain("Succesfully committed changes '" + commitMessage + "' locally.");
+              });
+            });
+
+            it("should push the commit to the remote specified by the --remote option if the --local option is false", function() {
+              var pushRemote, branchName;
+              var cmd = createCommand();
+
+              repo.respondTo('commitAll', makeResponder(null));
+              repo.respondTo('createTag', makeResponder(null));
+              repo.respondTo('push', function(remote, branch) {
+                pushRemote = remote;
+                branchName = branch;
+
+                return null;
+              });
+              repo.respondTo('push', makeResponder(null));
+
+              return cmd.validateAndRun([ '--yes' ]).then(function() {
+                expect(ui.output).to.contain("Succesfully pushed '" + branchName + "' to remote '" + pushRemote + "'.");
+              });
+            });
           });
         });
       });
