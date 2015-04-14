@@ -5,10 +5,8 @@ module.exports = {
   // local: true,
   // remote: 'some_remote',
   // annotation: "Release %@",
+  // message: "Bumped version to %@",
   // strategy: 'date',
   // format: 'YYYY-MM-DD',
   // timezone: 'America/Los_Angeles',
-  // build: function() { ... }
-  // preTag: function() { ... }
-  // publish: funciton() { ... }
 };
