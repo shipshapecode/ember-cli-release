@@ -13,8 +13,8 @@ var Command        = require('ember-cli/lib/models/command');
 var MockRepo       = require('../../helpers/mock-git');
 var ReleaseCommand = require('../../../lib/commands/release');
 var EOL            = require('os').EOL;
+var RSVP           = require('rsvp');
 
-var RSVP = require('rsvp');
 var rootPath = process.cwd();
 var fixturePath = path.join(rootPath, 'tests/fixtures');
 
@@ -218,8 +218,10 @@ describe("release command", function() {
               var pkg = JSON.parse(fs.readFileSync('./package.json'));
               var bower = JSON.parse(fs.readFileSync('./bower.json'));
 
-              expect(pkg.version).to.equal(nextTag);
-              expect(bower.version).to.equal(nextTag);
+              var rawVersion = nextTag.replace(/^v/, '');
+
+              expect(pkg.version).to.equal(rawVersion);
+              expect(bower.version).to.equal(rawVersion);
             });
           });
 
