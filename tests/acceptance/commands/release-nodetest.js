@@ -144,7 +144,7 @@ describe("release command", function() {
 
           return cmd.validateAndRun([ '--local' ]).then(function() {
             expect(createdTagName).to.equal(defaultTag);
-            expect(ui.output).to.contain("Succesfully created git tag '" + defaultTag + "' locally.");
+            expect(ui.output).to.contain("Successfully created git tag '" + defaultTag + "' locally.");
           });
         });
       });
@@ -193,7 +193,7 @@ describe("release command", function() {
             repo.respondTo('createTag', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-              expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' locally.");
+              expect(ui.output).to.contain("Successfully created git tag '" + nextTag + "' locally.");
             });
           });
 
@@ -259,7 +259,7 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
               expect(createdTagName).to.equal('foo');
               expect(createdTagMessage).to.be.falsey;
-              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
 
@@ -281,7 +281,7 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--annotation', 'Tag %@', '--local' ]).then(function() {
               expect(createdTagName).to.equal(nextTag);
               expect(createdTagMessage ).to.equal('Tag ' + nextTag);
-              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
 
@@ -318,7 +318,7 @@ describe("release command", function() {
               expect(strategyOptions.major).to.be.true;
               expect(strategyOptions.format).to.equal(dateFormat);
               expect(strategyOptions.timezone).to.equal(timezone);
-              expect(ui.output).to.contain("Succesfully created git tag '" + createdTagName + "' locally.");
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
 
@@ -343,8 +343,8 @@ describe("release command", function() {
               expect(pushRemote).to.equal('foo');
               expect(tagName).to.equal(nextTag);
               expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
-              expect(ui.output).to.contain("Succesfully created git tag '" + nextTag + "' locally.");
-              expect(ui.output).to.contain("Succesfully pushed '" + nextTag + "' to remote '" + pushRemote + "'.");
+              expect(ui.output).to.contain("Successfully created git tag '" + nextTag + "' locally.");
+              expect(ui.output).to.contain("Successfully pushed '" + nextTag + "' to remote '" + pushRemote + "'.");
             });
           });
         });
@@ -387,7 +387,7 @@ describe("release command", function() {
 
               return cmd.validateAndRun([ '--message', 'Foo %@', '--local', '--yes' ]).then(function() {
                 expect(commitMessage).to.equal('Foo ' + nextTag);
-                expect(ui.output).to.contain("Succesfully committed changes '" + commitMessage + "' locally.");
+                expect(ui.output).to.contain("Successfully committed changes '" + commitMessage + "' locally.");
               });
             });
 
@@ -406,7 +406,7 @@ describe("release command", function() {
               repo.respondTo('push', makeResponder(null));
 
               return cmd.validateAndRun([ '--yes' ]).then(function() {
-                expect(ui.output).to.contain("Succesfully pushed '" + branchName + "' to remote '" + pushRemote + "'.");
+                expect(ui.output).to.contain("Successfully pushed '" + branchName + "' to remote '" + pushRemote + "'.");
               });
             });
           });
