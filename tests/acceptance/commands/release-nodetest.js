@@ -27,7 +27,6 @@ describe("release command", function() {
   var analytics;
   var project;
   var repo;
-  var TestReleaseCommand;
 
   beforeEach(function() {
     ui = new MockUI();
@@ -83,13 +82,8 @@ describe("release command", function() {
         return repo;
       }
     });
-
-    return new TestReleaseCommand(options);
+    return new ReleaseCommand(options);
   }
-
-  before(function() {
-    TestReleaseCommand = Command.extend(ReleaseCommand);
-  });
 
   describe("when HEAD is at a tag", function() {
     it("should exit immediately if HEAD is at a tag", function() {
@@ -219,9 +213,8 @@ describe("release command", function() {
           });
 
           it("should replace the 'version' property in package.json and bower.json", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-no-config');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -237,9 +230,8 @@ describe("release command", function() {
           });
 
           it("should replace the 'version' property in the files specified by the 'manifest' option", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-different-manifests');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -255,9 +247,8 @@ describe("release command", function() {
           });
 
           it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-no-versions');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -380,8 +371,8 @@ describe("release command", function() {
 
         describe('hooks', function () {
           it('should execute the beforeCommit hook if supplied', function () {
-            var cmd = createCommand();
             copyFixture('project-with-hooks-config');
+            var cmd = createCommand();
 
             ui.waitForPrompt().then(function() {
               ui.inputStream.write('y' + EOL);
@@ -403,8 +394,8 @@ describe("release command", function() {
           it("should use the strategy specified by the config file", function() {
             var createdTagName;
 
-            var cmd = createCommand();
             copyFixture('project-with-config');
+            var cmd = createCommand();
 
             ui.waitForPrompt().then(function() {
               ui.inputStream.write('y' + EOL);
@@ -418,6 +409,27 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--local' ]).then(function() {
               expect(createdTagName).to.match(/\d{4}\.\d{2}\.\d{2}/);
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+          it("should use the strategy specified on the command line over one in the config file", function() {
+            var createdTagName;
+
+            copyFixture('project-with-config');
+            var cmd = createCommand();
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', function(tagName) {
+              createdTagName = tagName;
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--strategy', 'semver', '--local' ]).then(function() {
+              expect(createdTagName).to.equal(nextTag);
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });

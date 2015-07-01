@@ -36,7 +36,7 @@ See the [examples section](#examples) for more ways to use the command.
 
 ## Options
 
-Options can be specified on the command line or in `config/release.js` unless marked with an asterisk (`*`). Options specified in the config file take precedence over options specified on the command line. Run `ember help` to see CLI aliases.
+Options can be specified on the command line or in `config/release.js` unless marked with an asterisk (`*`). Options specified on the command line **always take precedence** over options in the config file. Run `ember help` to see CLI aliases.
 
 - `local`
 
@@ -141,11 +141,11 @@ be specified in `config/release.js`. The following lifecycle hooks are available
 
 The following additional lifecycle hooks are planned but not yet implemented:
 
-- `postCommit`
-- `preTag`
-- `postTag`
-- `prePush`
-- `postPush`
+- `afterCommit`
+- `beforeTag`
+- `afterTag`
+- `beforePush`
+- `afterPush`
 
 ## Workflow
 
