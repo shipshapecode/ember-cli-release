@@ -371,6 +371,27 @@ describe("release command", function() {
           });
         });
 
+        describe('hooks', function () {
+          it('should execute the beforeCommit hook if supplied', function () {
+            var cmd = createCommand();
+            copyFixture('project-with-hooks-config');
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+
+            return cmd.validateAndRun([]).then(function() {
+              var testPath = path.join(project.root, 'project-with-hooks-config-test.txt');
+              var versionWrittenByHook = fs.readFileSync(testPath, { encoding: 'utf8' });
+              expect(versionWrittenByHook).to.equal(nextTag);
+            });
+          });
+        });
+
         describe('configuration via config/release.js', function () {
           it("should use the strategy specified by the config file", function() {
             var createdTagName;
