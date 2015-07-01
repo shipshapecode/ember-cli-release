@@ -40,8 +40,12 @@ describe("release command", function() {
 
     project = {
       root: path.resolve('.'),
-      require: function() {
-        return Error;
+      require: function(module) {
+        if (module === 'ember-cli/lib/errors/silent') {
+          return Error;
+        } else {
+          throw new Error('Module not found (fake implementation)');
+        }
       },
       isEmberCLIProject: function(){
         return true;
@@ -345,6 +349,30 @@ describe("release command", function() {
               expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
               expect(ui.output).to.contain("Successfully created git tag '" + nextTag + "' locally.");
               expect(ui.output).to.contain("Successfully pushed '" + nextTag + "' to remote '" + pushRemote + "'.");
+            });
+          });
+        });
+
+        describe('configuration via config/release.js', function () {
+          it("should use the strategy specified by the config file", function() {
+            var createdTagName;
+
+            var cmd = createCommand();
+            copyFixture('project-with-config');
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', function(tagName) {
+              createdTagName = tagName;
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--local' ]).then(function() {
+              expect(createdTagName).to.match(/\d{4}\.\d{2}\.\d{2}/);
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
         });
