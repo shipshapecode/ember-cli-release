@@ -38,6 +38,13 @@ describe("release command", function() {
     fs.mkdirSync('tmp');
     process.chdir('tmp');
 
+    // Our tests copy config fixtures around, so we need to ensure
+    // each test gets the current config/release.js result
+    var configPath = path.resolve('config/release.js');
+    if (require.cache[configPath]) {
+      delete require.cache[configPath];
+    }
+
     project = {
       root: path.resolve('.'),
       require: function(module) {
