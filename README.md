@@ -68,6 +68,12 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
   Message to use when committing changes to the working tree (including changes to `package.json` and `bower.json`), where `%@` is replaced with tag name.
 
+- `manifest`
+
+  Default: `[ 'package.json', 'bower.json' ]`
+
+  A set of JSON manifest files to replace the top-level `version` key in with the new tag name.
+
 - `yes`\*
 
   Default: `false`

@@ -225,6 +225,24 @@ describe("release command", function() {
             });
           });
 
+          it("should replace the 'version' property in the files specified by the 'manifest' option", function() {
+            var cmd = createCommand();
+
+            copyFixture('project-with-different-manifests');
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes', '--manifest=foo.json', '--manifest=bar.json' ]).then(function() {
+              var foo = JSON.parse(fs.readFileSync('./foo.json'));
+              var bar = JSON.parse(fs.readFileSync('./bar.json'));
+
+              var rawVersion = nextTag.replace(/^v/, '');
+
+              expect(foo.version).to.equal(rawVersion);
+              expect(bar.version).to.equal(rawVersion);
+            });
+          });
+
           it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
             var cmd = createCommand();
 
