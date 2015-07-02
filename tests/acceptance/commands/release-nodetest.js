@@ -27,7 +27,6 @@ describe("release command", function() {
   var analytics;
   var project;
   var repo;
-  var TestReleaseCommand;
 
   beforeEach(function() {
     ui = new MockUI();
@@ -38,10 +37,21 @@ describe("release command", function() {
     fs.mkdirSync('tmp');
     process.chdir('tmp');
 
+    // Our tests copy config fixtures around, so we need to ensure
+    // each test gets the current config/release.js result
+    var configPath = path.resolve('config/release.js');
+    if (require.cache[configPath]) {
+      delete require.cache[configPath];
+    }
+
     project = {
       root: path.resolve('.'),
-      require: function() {
-        return Error;
+      require: function(module) {
+        if (module === 'ember-cli/lib/errors/silent') {
+          return Error;
+        } else {
+          throw new Error('Module not found (fake implementation)');
+        }
       },
       isEmberCLIProject: function(){
         return true;
@@ -72,13 +82,8 @@ describe("release command", function() {
         return repo;
       }
     });
-
-    return new TestReleaseCommand(options);
+    return new ReleaseCommand(options);
   }
-
-  before(function() {
-    TestReleaseCommand = Command.extend(ReleaseCommand);
-  });
 
   describe("when HEAD is at a tag", function() {
     it("should exit immediately if HEAD is at a tag", function() {
@@ -208,9 +213,8 @@ describe("release command", function() {
           });
 
           it("should replace the 'version' property in package.json and bower.json", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-no-config');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -226,9 +230,8 @@ describe("release command", function() {
           });
 
           it("should replace the 'version' property in the files specified by the 'manifest' option", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-different-manifests');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -244,9 +247,8 @@ describe("release command", function() {
           });
 
           it("should not add a 'version' property in package.json and bower.json if it doesn't exsist", function() {
-            var cmd = createCommand();
-
             copyFixture('project-with-no-versions');
+            var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
 
@@ -363,6 +365,72 @@ describe("release command", function() {
               expect(ui.output).to.contain("About to create tag '" + nextTag + "' and push to remote '" + pushRemote + "', proceed?");
               expect(ui.output).to.contain("Successfully created git tag '" + nextTag + "' locally.");
               expect(ui.output).to.contain("Successfully pushed '" + nextTag + "' to remote '" + pushRemote + "'.");
+            });
+          });
+        });
+
+        describe('hooks', function () {
+          it('should execute the beforeCommit hook if supplied', function () {
+            copyFixture('project-with-hooks-config');
+            var cmd = createCommand();
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+
+            return cmd.validateAndRun([]).then(function() {
+              var testPath = path.join(project.root, 'project-with-hooks-config-test.txt');
+              var versionWrittenByHook = fs.readFileSync(testPath, { encoding: 'utf8' });
+              expect(versionWrittenByHook).to.equal(nextTag);
+            });
+          });
+        });
+
+        describe('configuration via config/release.js', function () {
+          it("should use the strategy specified by the config file", function() {
+            var createdTagName;
+
+            copyFixture('project-with-config');
+            var cmd = createCommand();
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', function(tagName) {
+              createdTagName = tagName;
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--local' ]).then(function() {
+              expect(createdTagName).to.match(/\d{4}\.\d{2}\.\d{2}/);
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+          it("should use the strategy specified on the command line over one in the config file", function() {
+            var createdTagName;
+
+            copyFixture('project-with-config');
+            var cmd = createCommand();
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+            });
+
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', function(tagName) {
+              createdTagName = tagName;
+              return null;
+            });
+
+            return cmd.validateAndRun([ '--strategy', 'semver', '--local' ]).then(function() {
+              expect(createdTagName).to.equal(nextTag);
+              expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
         });
