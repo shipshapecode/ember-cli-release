@@ -20,8 +20,10 @@
   "dependencies": {
     "chalk": "^1.0.0",
     "git-tools": "^0.1.4",
+    "make-array": "^0.1.2",
     "merge": "^1.2.0",
     "moment-timezone": "^0.3.0",
+    "nopt": "^3.0.3",
     "rsvp": "^3.0.17",
     "semver": "^4.3.1"
   },

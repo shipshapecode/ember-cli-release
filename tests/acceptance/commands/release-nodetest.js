@@ -369,20 +369,45 @@ describe("release command", function() {
           });
         });
 
-        describe('hooks', function () {
-          it('should execute the beforeCommit hook if supplied', function () {
+        describe("hooks", function () {
+          beforeEach(function() {
+            repo.respondTo('status', makeResponder(''));
+          });
+
+          it("should print a warning about non-function hooks", function() {
+            copyFixture('project-with-bad-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              expect(ui.output).to.contain("Warning: `beforeCommit` is not a function");
+            });
+          });
+
+          it("should allow flexible option values", function() {
+            copyFixture('project-with-bad-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            // This tests that the `manifest` option can be specified as a single string
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var foo = JSON.parse(fs.readFileSync('./foo.json'));
+
+              var rawVersion = nextTag.replace(/^v/, '');
+              expect(foo.version).to.equal(rawVersion);
+            });
+          });
+
+          it("should execute the beforeCommit hook if supplied", function () {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
 
-            ui.waitForPrompt().then(function() {
-              ui.inputStream.write('y' + EOL);
-            });
-
-            repo.respondTo('status', makeResponder(''));
             repo.respondTo('createTag', makeResponder(null));
             repo.respondTo('push', makeResponder(null));
 
-            return cmd.validateAndRun([]).then(function() {
+            return cmd.validateAndRun([ '--yes' ]).then(function() {
               var testPath = path.join(project.root, 'project-with-hooks-config-test.txt');
               var versionWrittenByHook = fs.readFileSync(testPath, { encoding: 'utf8' });
               expect(versionWrittenByHook).to.equal(nextTag);
@@ -390,24 +415,35 @@ describe("release command", function() {
           });
         });
 
-        describe('configuration via config/release.js', function () {
+        describe("configuration via config/release.js", function () {
+          beforeEach(function() {
+            repo.respondTo('status', makeResponder(''));
+          });
+
+          it("should print a warning about unknown options", function() {
+            copyFixture('project-with-bad-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              expect(ui.output).to.contain("Warning: cannot specify option `minor`");
+              expect(ui.output).to.contain("Warning: invalid option `foo`");
+            });
+          });
+
           it("should use the strategy specified by the config file", function() {
             var createdTagName;
 
             copyFixture('project-with-config');
             var cmd = createCommand();
 
-            ui.waitForPrompt().then(function() {
-              ui.inputStream.write('y' + EOL);
-            });
-
-            repo.respondTo('status', makeResponder(''));
             repo.respondTo('createTag', function(tagName) {
               createdTagName = tagName;
               return null;
             });
 
-            return cmd.validateAndRun([ '--local' ]).then(function() {
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(createdTagName).to.match(/\d{4}\.\d{2}\.\d{2}/);
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
@@ -418,17 +454,12 @@ describe("release command", function() {
             copyFixture('project-with-config');
             var cmd = createCommand();
 
-            ui.waitForPrompt().then(function() {
-              ui.inputStream.write('y' + EOL);
-            });
-
-            repo.respondTo('status', makeResponder(''));
             repo.respondTo('createTag', function(tagName) {
               createdTagName = tagName;
               return null;
             });
 
-            return cmd.validateAndRun([ '--strategy', 'semver', '--local' ]).then(function() {
+            return cmd.validateAndRun([ '--strategy', 'semver', '--local', '--yes' ]).then(function() {
               expect(createdTagName).to.equal(nextTag);
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
