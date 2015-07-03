@@ -112,14 +112,22 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
 ## Hooks
 
-A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can
-be specified in `config/release.js`. The following lifecycle hooks are available:
+A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can be specified in `config/release.js`. All hooks can return a thenable that will be resolved before continuing the release process. Rejecting a promise returned in a hook will halt the release process and exit with an error.
+
+Hooks are passed two arguments:
+
+  - `project` - a reference to the current ember-cli project
+  - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property.
+
+The following lifecycle hooks are available:
 
 - `beforeCommit`
 
-  A function to run when the new version has been computed but before the version changes have been committed. This is the hook to use if you need to update the version number in additional files besides the standard package.json and bower.json. The function is passed `project` and `versions`. `versions` will always have a `next` property and depending on the strategy you are using, may also have a `latest`
+  Called after the new version has been computed and replaced in manifest files but before the changes have been committed. Use this hook if you need to update the version number in additional files, or build the project to update dist files. Note that this hook runs regardless of whether a commit will be made.
 
   ###### Example Usage
+
+  Version replacement:
 
   ```js
   // config/release.js
@@ -127,25 +135,109 @@ be specified in `config/release.js`. The following lifecycle hooks are available
   var xmlpoke = require('xmlpoke');
 
   module.exports = {
-    beforeCommit: function(project, versions){
+    beforeCommit: function(project, versions) {
       xmlpoke(path.join(project.root, 'cordova/config.xml'), function(xml) {
         xml.errorOnNoMatches();
         xml.addNamespace('w', 'http://www.w3.org/ns/widgets');
         xml.set('w:widget/@version', versions.next);
       });
     }
-  }
+  };
   ```
 
-##### Planned Hooks
+  Building:
 
-The following additional lifecycle hooks are planned but not yet implemented:
+  ```js
+  // config/release.js
+  var RSVP = require('rsvp');
+  var exec = require('child_process').exec;
+
+  module.exports = {
+    // Build the project in the production environment, outputting to dist/
+    beforeCommit: function(project) {
+      return new RSVP.Promise(function(resolve, reject) {
+        // Make ember-cli behave non-interactively
+        var childProcess = exec('CI=1 ember build --environment=production', function(err) {
+          err ? reject(err) : resolve();
+        });
+
+        // Pipe the build's output to the project's UI
+        childProcess.stdout.pipe(project.ui.outputStream, { end: false });
+      });
+    }
+  };
+  ```
 
 - `afterCommit`
+
+  Called after the release commit has been created, but before tagging it. Note that this hook runs regardless of whether a commit is made, for example when version replacement is disabled and no changes were made to the working tree.
+
 - `beforeTag`
+
+  Called after prompting to create the tag, but before the release tag is actually created.
+
 - `afterTag`
+
+  Called after creating the release tag, but before pushing it remotely. This hook is run directly before the `beforePush` hook, and is merely provided for symmetry.
+
 - `beforePush`
+
+  Called after tagging but before pushing all local changes remotely.
+
 - `afterPush`
+
+  Called after successfully pushing all changes to the specified remote, but before exiting. Use this hook for post-release tasks like publishing, cleanup, or sending notifications from your CI server.
+
+  ###### Example Usage
+
+  Publishing:
+
+  ```js
+  // config/release.js
+  var RSVP = require('rsvp');
+  var publisher = require('publish');
+
+  // Create promise friendly versions of the methods we want to use
+  var start = RSVP.denodeify(publisher.start);
+  var publish = RSVP.denodeify(publisher.publish);
+
+  module.exports = {
+    // Publish the new release to NPM after a successful push
+    // If run from travis, this will look for the NPM_USERNAME, NPM_PASSWORD and
+    // NPM_EMAIL environment variables to publish the package as
+    afterPush: function() {
+      return start().then(function() {
+        return publish();
+      });
+    }
+  };
+  ```
+
+  Notification:
+
+  ```js
+  // config/release.js
+  var Slack = require('node-slack');
+
+  // Look for slack configuration in the CI environment
+  var isCI = process.env.CI;
+  var hookURL = process.env.SLACK_HOOK_URL;
+
+  module.exports = {
+    // Notify the #dev channel when a new release is created
+    afterPush: function(project, versions) {
+      if (isCI && hookURL) {
+        var slack = new Slack(hookURL);
+
+        return slack.send({
+          text: 'ZOMG, ' + project.name() + ' ' + versions.next + ' RELEASED!!1!',
+          channel: '#dev',
+          username: 'Mr. CI'
+        });
+      }
+    }
+  };
+  ```
 
 ## Workflow
 

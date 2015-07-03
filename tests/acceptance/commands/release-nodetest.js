@@ -371,31 +371,75 @@ describe("release command", function() {
 
         describe("hooks", function () {
           beforeEach(function() {
-            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('currentBranch', makeResponder('master'));
+            repo.respondTo('status', makeResponder('M package.json'));
           });
+
+          function fileExists(filePath) {
+            return fs.existsSync(path.join(project.root, filePath));
+          }
+
+          function fileContents(filePath) {
+            return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
+          }
 
           it("should print a warning about non-function hooks", function() {
             copyFixture('project-with-bad-config');
             var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('commitAll', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(ui.output).to.contain("Warning: `beforeCommit` is not a function");
             });
           });
 
-          it("should execute the beforeCommit hook if supplied", function () {
+          it("should execute hooks in the correct order", function () {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
 
-            repo.respondTo('createTag', makeResponder(null));
+            expect(fileExists('before-commit.txt'), 'beforeCommit not called yet').to.be.false;
+
+            repo.respondTo('commitAll', function() {
+              expect(fileExists('before-commit.txt'), 'beforeCommit called').to.be.true;
+              expect(fileExists('after-commit.txt'), 'afterCommit not called yet').to.be.false;
+              expect(fileExists('before-tag.txt'), 'beforeTag not called yet').to.be.false;
+            });
+            repo.respondTo('createTag', function() {
+              expect(fileExists('after-commit.txt'), 'afterCommit called').to.be.true;
+              expect(fileExists('before-tag.txt'), 'beforeTag called').to.be.true;
+              expect(fileExists('after-tag.txt'), 'afterTag not called yet').to.be.false;
+              expect(fileExists('before-push.txt'), 'beforePush not called yet').to.be.false;
+            });
+            repo.respondTo('push', function() {
+              expect(fileExists('after-tag.txt'), 'afterTag called').to.be.true;
+              expect(fileExists('before-push.txt'), 'beforePush called').to.be.true;
+              expect(fileExists('after-push.txt'), 'afterPush not called yet').to.be.false;
+            });
             repo.respondTo('push', makeResponder(null));
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
-              var testPath = path.join(project.root, 'project-with-hooks-config-test.txt');
-              var versionWrittenByHook = fs.readFileSync(testPath, { encoding: 'utf8' });
-              expect(versionWrittenByHook).to.equal(nextTag);
+              expect(fileExists('after-push.txt'), 'afterPush called').to.be.true;
+            });
+          });
+
+          it("should pass the correct values into hooks", function () {
+            copyFixture('project-with-hooks-config');
+            var cmd = createCommand();
+
+            repo.respondTo('commitAll', makeResponder(null));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+
+            return cmd.validateAndRun([ '--yes' ]).then(function() {
+              expect(fileContents('before-commit.txt')).to.equal(nextTag);
+              expect(fileContents('after-commit.txt')).to.equal(nextTag);
+              expect(fileContents('before-tag.txt')).to.equal(nextTag);
+              expect(fileContents('after-tag.txt')).to.equal(nextTag);
+              expect(fileContents('before-push.txt')).to.equal(nextTag);
+              expect(fileContents('after-push.txt')).to.equal(nextTag);
             });
           });
         });
