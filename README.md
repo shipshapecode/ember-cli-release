@@ -119,7 +119,7 @@ Hooks are passed two arguments:
   - `project` - a reference to the current ember-cli project
   - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property.
 
-The following lifecycle hooks are available:
+There are currently two lifecycle hooks available:
 
 - `beforeCommit`
 
@@ -167,22 +167,6 @@ The following lifecycle hooks are available:
     }
   };
   ```
-
-- `afterCommit`
-
-  Called after the release commit has been created, but before tagging it. Note that this hook runs regardless of whether a commit is made, for example when version replacement is disabled and no changes were made to the working tree.
-
-- `beforeTag`
-
-  Called after prompting to create the tag, but before the release tag is actually created.
-
-- `afterTag`
-
-  Called after creating the release tag, but before pushing it remotely. This hook is run directly before the `beforePush` hook, and is merely provided for symmetry.
-
-- `beforePush`
-
-  Called after tagging but before pushing all local changes remotely.
 
 - `afterPush`
 

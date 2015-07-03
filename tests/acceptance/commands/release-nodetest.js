@@ -403,18 +403,9 @@ describe("release command", function() {
 
             repo.respondTo('commitAll', function() {
               expect(fileExists('before-commit.txt'), 'beforeCommit called').to.be.true;
-              expect(fileExists('after-commit.txt'), 'afterCommit not called yet').to.be.false;
-              expect(fileExists('before-tag.txt'), 'beforeTag not called yet').to.be.false;
             });
-            repo.respondTo('createTag', function() {
-              expect(fileExists('after-commit.txt'), 'afterCommit called').to.be.true;
-              expect(fileExists('before-tag.txt'), 'beforeTag called').to.be.true;
-              expect(fileExists('after-tag.txt'), 'afterTag not called yet').to.be.false;
-              expect(fileExists('before-push.txt'), 'beforePush not called yet').to.be.false;
-            });
+            repo.respondTo('createTag', makeResponder(null));
             repo.respondTo('push', function() {
-              expect(fileExists('after-tag.txt'), 'afterTag called').to.be.true;
-              expect(fileExists('before-push.txt'), 'beforePush called').to.be.true;
               expect(fileExists('after-push.txt'), 'afterPush not called yet').to.be.false;
             });
             repo.respondTo('push', makeResponder(null));
@@ -435,10 +426,6 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
               expect(fileContents('before-commit.txt')).to.equal(nextTag);
-              expect(fileContents('after-commit.txt')).to.equal(nextTag);
-              expect(fileContents('before-tag.txt')).to.equal(nextTag);
-              expect(fileContents('after-tag.txt')).to.equal(nextTag);
-              expect(fileContents('before-push.txt')).to.equal(nextTag);
               expect(fileContents('after-push.txt')).to.equal(nextTag);
             });
           });
