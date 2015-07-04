@@ -385,21 +385,6 @@ describe("release command", function() {
             });
           });
 
-          it("should allow flexible option values", function() {
-            copyFixture('project-with-bad-config');
-            var cmd = createCommand();
-
-            repo.respondTo('createTag', makeResponder(null));
-
-            // This tests that the `manifest` option can be specified as a single string
-            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-              var foo = JSON.parse(fs.readFileSync('./foo.json'));
-
-              var rawVersion = nextTag.replace(/^v/, '');
-              expect(foo.version).to.equal(rawVersion);
-            });
-          });
-
           it("should execute the beforeCommit hook if supplied", function () {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
@@ -429,6 +414,21 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(ui.output).to.contain("Warning: cannot specify option `minor`");
               expect(ui.output).to.contain("Warning: invalid option `foo`");
+            });
+          });
+
+          it("should allow flexible option values", function() {
+            copyFixture('project-with-bad-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            // This tests that the `manifest` option can be specified as a single string
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var foo = JSON.parse(fs.readFileSync('./foo.json'));
+
+              var rawVersion = nextTag.replace(/^v/, '');
+              expect(foo.version).to.equal(rawVersion);
             });
           });
 
