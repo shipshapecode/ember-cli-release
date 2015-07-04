@@ -149,20 +149,20 @@ There are currently two lifecycle hooks available:
 
   ```js
   // config/release.js
-  var RSVP = require('rsvp');
-  var exec = require('child_process').exec;
+  var BuildTask = require('ember-cli/lib/tasks/build');
 
   module.exports = {
     // Build the project in the production environment, outputting to dist/
     beforeCommit: function(project) {
-      return new RSVP.Promise(function(resolve, reject) {
-        // Make ember-cli behave non-interactively
-        var childProcess = exec('CI=1 ember build --environment=production', function(err) {
-          err ? reject(err) : resolve();
-        });
+      var task = new BuildTask({
+        project: project,
+        ui: project.ui,
+        analytics: project.cli.analytics
+      });
 
-        // Pipe the build's output to the project's UI
-        childProcess.stdout.pipe(project.ui.outputStream, { end: false });
+      return task.run({
+        environment: 'production',
+        outputPath: 'dist/'
       });
     }
   };
