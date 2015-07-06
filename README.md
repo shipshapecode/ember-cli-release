@@ -240,10 +240,10 @@ These are the steps that take place when running the `release` command (unchecke
       1. Create tag name based on current date and `format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-4. ☑ Replace `version` property of `package.json`/`bower.json` files with new version
-5. ◻ Search/replace whitelisted files with new version
-6. ◻ Invoke build config function if available or run `ember build` if `build` option is `true`
-7. ◻ Invoke changelog config function if available
+4. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
+5. ◻ Run `ember build` if `build` option is `true` (default: `false`)
+6. ◻ Generate changelog entry and append to `CHANGELOG.md`
+7. ☑ Invoke the `beforeCommit` hook
 8. ☑ Commit changes
   1. Skip if working tree is unmodified
   2. Stage all changes and commit with `message` option as the commit message
@@ -251,11 +251,10 @@ These are the steps that take place when running the `release` command (unchecke
   1. Prompt to continue with new tag name
   2. Tag the latest commit with new version using the `annotation` option if specified
 10. ☑ Push to remote
-  1. Skip if `local` option is `true`
+  1. Skip if `local` option is `true` (default: `false`)
   2. Push current branch and tags to remote specified by `remote` option
-11. ◻ NPM Publish
-  1. Skip if `publish` option is `false`
-  2. Publish package to NPM using current credentials
+11. ☑ Invoke the `afterPush` hook
+12. ◻ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
 
 ## Examples
 
