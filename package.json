@@ -1,6 +1,6 @@
 {
   "name": "ember-cli-release",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Ember CLI addon for managing release versions.",
   "directories": {
     "test": "tests"
