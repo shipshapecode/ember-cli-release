@@ -371,46 +371,62 @@ describe("release command", function() {
 
         describe("hooks", function () {
           beforeEach(function() {
-            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('currentBranch', makeResponder('master'));
+            repo.respondTo('status', makeResponder('M package.json'));
           });
+
+          function fileExists(filePath) {
+            return fs.existsSync(path.join(project.root, filePath));
+          }
+
+          function fileContents(filePath) {
+            return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
+          }
 
           it("should print a warning about non-function hooks", function() {
             copyFixture('project-with-bad-config');
             var cmd = createCommand();
 
             repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('commitAll', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(ui.output).to.contain("Warning: `beforeCommit` is not a function");
             });
           });
 
-          it("should allow flexible option values", function() {
-            copyFixture('project-with-bad-config');
-            var cmd = createCommand();
-
-            repo.respondTo('createTag', makeResponder(null));
-
-            // This tests that the `manifest` option can be specified as a single string
-            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-              var foo = JSON.parse(fs.readFileSync('./foo.json'));
-
-              var rawVersion = nextTag.replace(/^v/, '');
-              expect(foo.version).to.equal(rawVersion);
-            });
-          });
-
-          it("should execute the beforeCommit hook if supplied", function () {
+          it("should execute hooks in the correct order", function () {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
 
+            expect(fileExists('before-commit.txt'), 'beforeCommit not called yet').to.be.false;
+
+            repo.respondTo('commitAll', function() {
+              expect(fileExists('before-commit.txt'), 'beforeCommit called').to.be.true;
+            });
             repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', function() {
+              expect(fileExists('after-push.txt'), 'afterPush not called yet').to.be.false;
+            });
             repo.respondTo('push', makeResponder(null));
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
-              var testPath = path.join(project.root, 'project-with-hooks-config-test.txt');
-              var versionWrittenByHook = fs.readFileSync(testPath, { encoding: 'utf8' });
-              expect(versionWrittenByHook).to.equal(nextTag);
+              expect(fileExists('after-push.txt'), 'afterPush called').to.be.true;
+            });
+          });
+
+          it("should pass the correct values into hooks", function () {
+            copyFixture('project-with-hooks-config');
+            var cmd = createCommand();
+
+            repo.respondTo('commitAll', makeResponder(null));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+
+            return cmd.validateAndRun([ '--yes' ]).then(function() {
+              expect(fileContents('before-commit.txt')).to.equal(nextTag);
+              expect(fileContents('after-push.txt')).to.equal(nextTag);
             });
           });
         });
@@ -429,6 +445,21 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
               expect(ui.output).to.contain("Warning: cannot specify option `minor`");
               expect(ui.output).to.contain("Warning: invalid option `foo`");
+            });
+          });
+
+          it("should allow flexible option values", function() {
+            copyFixture('project-with-bad-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            // This tests that the `manifest` option can be specified as a single string
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var foo = JSON.parse(fs.readFileSync('./foo.json'));
+
+              var rawVersion = nextTag.replace(/^v/, '');
+              expect(foo.version).to.equal(rawVersion);
             });
           });
 

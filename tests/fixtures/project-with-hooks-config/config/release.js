@@ -4,12 +4,19 @@ var fs = require('fs');
 var path = require('path');
 
 module.exports = {
-  beforeCommit: function(project, versions){
-    return new RSVP.Promise(function(resolve, reject){
-      fs.writeFile(
-        path.join(project.root, 'project-with-hooks-config-test.txt'),
-        versions.next,
-        resolve)
-    });
+  beforeCommit: function(project, versions) {
+    return writeFile(project.root, 'before-commit.txt', versions.next);
+  },
+  afterPush: function(project, versions) {
+    return writeFile(project.root, 'after-push.txt', versions.next);
   }
+};
+
+function writeFile(rootPath, filePath, contents) {
+  return new RSVP.Promise(function(resolve, reject) {
+    fs.writeFile(
+      path.join(rootPath, filePath),
+      contents,
+      resolve);
+  });
 }
