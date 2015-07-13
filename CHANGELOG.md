@@ -1,5 +1,20 @@
 # Changelog
 
+### v0.2.5 (July 13, 2015)
+
+* Fixed `SilentError` deprecation warning (@rwjblue)
+
+### v0.2.4 (July 5, 2015)
+
+* Added `afterPush` hook
+* Added `beforeCommit` hook (@lukemelia, @chrislopresto)
+* Fixed issue with config file not being loaded (@lukemelia, @chrislopresto)
+* Added ability to specify manifest files
+
+### v0.2.3 (April 20, 2015)
+
+* Fixed issue with main blueprint when installing from within an addon
+
 ### v0.2.2 (April 14, 2015)
 
 * Fixed issue with push success messages not printing
