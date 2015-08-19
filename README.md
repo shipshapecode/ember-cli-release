@@ -192,7 +192,7 @@ There are currently two lifecycle hooks available:
     // NPM_EMAIL environment variables to publish the package as
     afterPush: function() {
       return start().then(function() {
-        return publish();
+        return publish({});
       });
     }
   };
