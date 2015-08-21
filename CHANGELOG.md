@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.2.6 (August 21, 2015)
+
+* Ensure trailing newline when rewriting manifest files (@mmun)
+
 ### v0.2.5 (July 13, 2015)
 
 * Fixed `SilentError` deprecation warning (@rwjblue)
