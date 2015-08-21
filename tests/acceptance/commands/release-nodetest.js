@@ -261,6 +261,20 @@ describe("release command", function() {
             });
           });
 
+          it("should ensure package.json is normalized with a trailing newline", function() {
+            copyFixture('project-with-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              var pkgSource = fs.readFileSync('./package.json', { encoding: 'utf8' });
+
+              expect(pkgSource[pkgSource.length - 2]).to.equal('}');
+              expect(pkgSource[pkgSource.length - 1]).to.equal('\n');
+            });
+          });
+
           it("should use the tag name specified by the --tag option", function() {
             var createdTagName, createdTagMessage;
             var cmd = createCommand();
