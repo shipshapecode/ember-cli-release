@@ -53,6 +53,9 @@ describe("release command", function() {
           throw new Error('Module not found (fake implementation)');
         }
       },
+      hasDependencies: function () {
+        return true;
+      },
       isEmberCLIProject: function(){
         return true;
       }
