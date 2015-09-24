@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.2.7 (September 24, 2015)
+
+* Prevent untracked files from being added to the release commit
+
 ### v0.2.6 (August 21, 2015)
 
 * Ensure trailing newline when rewriting manifest files (@mmun)
