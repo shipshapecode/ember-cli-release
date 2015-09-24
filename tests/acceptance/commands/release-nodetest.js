@@ -104,7 +104,6 @@ describe("release command", function() {
     describe("when working copy has modifications", function() {
       beforeEach(function() {
         repo.respondTo('currentTag', makeResponder(null));
-        repo.respondTo('status', makeResponder('M app/foo.js'));
       });
 
       it("should warn of local changes and allow aborting", function() {
@@ -114,10 +113,25 @@ describe("release command", function() {
           ui.inputStream.write('n' + EOL);
         });
 
+        repo.respondTo('status', makeResponder(' M app/foo.js'));
+
         return cmd.validateAndRun([ '--local' ]).then(function() {
           expect(ui.output).to.contain("Your working tree contains modifications that will be added to the release commit, proceed?");
         }).catch(function(error) {
           expect(error.message).to.equals("Aborted.");
+        });
+      });
+
+      it("should not warn or commit if only untracked files are present", function() {
+        var cmd = createCommand();
+
+        repo.respondTo('status', makeResponder('?? not-in-repo.txt'));
+        repo.respondTo('tags', makeResponder([]));
+        repo.respondTo('status', makeResponder('?? not-in-repo.txt'));
+        repo.respondTo('createTag', makeResponder(null));
+
+        return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+          expect(ui.output).to.not.contain("Your working tree contains modifications that will be added to the release commit, proceed?");
         });
       });
     });
