@@ -118,7 +118,7 @@ A set of lifecycle hooks exists as a means to inject additional behavior into th
 Hooks are passed two arguments:
 
   - `project` - a reference to the current ember-cli project
-  - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property.
+  - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property. The version will be the exact value that was used for the tag, by default this includes a `v` prefix.
 
 There are currently two lifecycle hooks available:
 
