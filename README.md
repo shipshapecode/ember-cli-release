@@ -113,7 +113,7 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
 ## Hooks
 
-A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can be specified in `config/release.js`. All hooks can return a thenable that will be resolved before continuing the release process. Rejecting a promise returned in a hook will halt the release process and exit with an error.
+A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can be specified in `config/release.js`. All hooks can return a thenable that will be resolved before continuing the release process. Throwing from a hook or rejecting a promise returned by a hook will halt the release process and print the error.
 
 Hooks are passed two arguments:
 
@@ -132,11 +132,23 @@ There are three lifecycle hooks available:
 
   ```js
   // config/release.js
+  var RSVP = require('rsvp');
+  var npmWhoami = require('npm-whoami');
+
+  // Create promise friendly version of the node-style async method
+  var whoami = RSVP.denodeify(npmWhoami);
+
   module.exports = {
     init: function() {
       if (!process.env.SUPER_SECRET_KEY) {
         throw 'Super secret key missing!';
       }
+
+      return whoami().then(function(username) {
+        if (!username) {
+          throw 'No NPM user authorized, cannot publish!';
+        }
+      });
     }
   };
   ```

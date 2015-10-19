@@ -476,6 +476,24 @@ describe("release command", function() {
               expect(fileContents('after-push.txt')).to.equal(nextTag);
             });
           });
+
+          it("should allow aborting directly from hooks", function () {
+            copyFixture('project-with-aborted-hooks-config');
+            var cmd = createCommand();
+
+            return cmd.validateAndRun([ '--tag', 'immediate' ]).catch(function(error) {
+              expect(error.message).to.equals('Error encountered in `init` hook: "nope"');
+            });
+          });
+
+          it("should allow aborting from promise returned by hooks", function () {
+            copyFixture('project-with-aborted-hooks-config');
+            var cmd = createCommand();
+
+            return cmd.validateAndRun([ '--tag', 'promise' ]).catch(function(error) {
+              expect(error.message).to.equals('Error encountered in `init` hook: "nope"');
+            });
+          });
         });
 
         describe("configuration via config/release.js", function () {
@@ -526,6 +544,7 @@ describe("release command", function() {
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
+
           it("should use the strategy specified on the command line over one in the config file", function() {
             var createdTagName;
 
