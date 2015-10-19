@@ -4,6 +4,9 @@ var fs = require('fs');
 var path = require('path');
 
 module.exports = {
+  init: function(project, versions) {
+    return writeFile(project.root, 'init.txt', versions.next);
+  },
   beforeCommit: function(project, versions) {
     return writeFile(project.root, 'before-commit.txt', versions.next);
   },

@@ -113,18 +113,49 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
 ## Hooks
 
-A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can be specified in `config/release.js`. All hooks can return a thenable that will be resolved before continuing the release process. Rejecting a promise returned in a hook will halt the release process and exit with an error.
+A set of lifecycle hooks exists as a means to inject additional behavior into the release process. Lifecycle hooks can be specified in `config/release.js`. All hooks can return a thenable that will be resolved before continuing the release process. Throwing from a hook or rejecting a promise returned by a hook will halt the release process and print the error.
 
 Hooks are passed two arguments:
 
   - `project` - a reference to the current ember-cli project
   - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property.
 
-There are currently two lifecycle hooks available:
+There are three lifecycle hooks available:
+
+- `init`
+
+  Called after the new version has been computed but before any changes are made to the filesystem or repository. Use this hook if you need to verify that the local environment is setup for releasing, and abort if not.
+
+  ###### Example Usage
+
+  Aborting:
+
+  ```js
+  // config/release.js
+  var RSVP = require('rsvp');
+  var npmWhoami = require('npm-whoami');
+
+  // Create promise friendly version of the node-style async method
+  var whoami = RSVP.denodeify(npmWhoami);
+
+  module.exports = {
+    init: function() {
+      if (!process.env.SUPER_SECRET_KEY) {
+        throw 'Super secret key missing!';
+      }
+
+      return whoami().then(function(username) {
+        if (!username) {
+          throw 'No NPM user authorized, cannot publish!';
+        }
+      });
+    }
+  };
+  ```
 
 - `beforeCommit`
 
-  Called after the new version has been computed and replaced in manifest files but before the changes have been committed. Use this hook if you need to update the version number in additional files, or build the project to update dist files. Note that this hook runs regardless of whether a commit will be made.
+  Called after the new version has been replaced in manifest files but before the changes have been committed. Use this hook if you need to update the version number in additional files, or build the project to update dist files. Note that this hook runs regardless of whether a commit will be made.
 
   ###### Example Usage
 
@@ -229,8 +260,7 @@ There are currently two lifecycle hooks available:
 These are the steps that take place when running the `release` command (unchecked steps have not yet been implemented):
 
 1. ☑ Abort if HEAD is already at a tag
-2. ☑ If working tree is dirty, prompt user that their changes will be included in release commit
-3. ☑ Calculate new version
+2. ☑ Calculate new version
   1. Use `tag` option if present
   2. Generate new version using `strategy` option (default: 'semver')
     - SemVer
@@ -240,21 +270,23 @@ These are the steps that take place when running the `release` command (unchecke
       1. Create tag name based on current date and `format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-4. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
-5. ◻ Run `ember build` if `build` option is `true` (default: `false`)
-6. ◻ Generate changelog entry and append to `CHANGELOG.md`
-7. ☑ Invoke the `beforeCommit` hook
-8. ☑ Commit changes
+3. ☑ Invoke the `init` hook
+4. ☑ If working tree is dirty, prompt user that their changes will be included in release commit
+5. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
+6. ◻ Run `ember build` if `build` option is `true` (default: `false`)
+7. ◻ Generate changelog entry and append to `CHANGELOG.md`
+8. ☑ Invoke the `beforeCommit` hook
+9. ☑ Commit changes
   1. Skip if working tree is unmodified
   2. Stage all changes and commit with `message` option as the commit message
-9. ☑ Create tag
+10. ☑ Create tag
   1. Prompt to continue with new tag name
   2. Tag the latest commit with new version using the `annotation` option if specified
-10. ☑ Push to remote
+11. ☑ Push to remote
   1. Skip if `local` option is `true` (default: `false`)
   2. Push current branch and tags to remote specified by `remote` option
-11. ☑ Invoke the `afterPush` hook
-12. ◻ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
+12. ☑ Invoke the `afterPush` hook
+13. ◻ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
 
 ## Examples
 
