@@ -116,6 +116,7 @@ describe("release command", function() {
           ui.inputStream.write('n' + EOL);
         });
 
+        repo.respondTo('tags', makeResponder([]));
         repo.respondTo('status', makeResponder(' M app/foo.js'));
 
         return cmd.validateAndRun([ '--local' ]).then(function() {
@@ -128,8 +129,8 @@ describe("release command", function() {
       it("should not warn or commit if only untracked files are present", function() {
         var cmd = createCommand();
 
-        repo.respondTo('status', makeResponder('?? not-in-repo.txt'));
         repo.respondTo('tags', makeResponder([]));
+        repo.respondTo('status', makeResponder('?? not-in-repo.txt'));
         repo.respondTo('status', makeResponder('?? not-in-repo.txt'));
         repo.respondTo('createTag', makeResponder(null));
 
@@ -142,7 +143,6 @@ describe("release command", function() {
     describe("when working copy has no modifications", function() {
       beforeEach(function() {
         repo.respondTo('currentTag', makeResponder(null));
-        repo.respondTo('status', makeResponder(''));
       });
 
       describe("when repo has no existing tags", function() {
@@ -150,6 +150,7 @@ describe("release command", function() {
 
         beforeEach(function() {
           repo.respondTo('tags', makeResponder([]));
+          repo.respondTo('status', makeResponder(''));
           repo.respondTo('status', makeResponder(''));
         });
 
@@ -191,6 +192,7 @@ describe("release command", function() {
 
         beforeEach(function() {
           repo.respondTo('tags', makeResponder(tags));
+          repo.respondTo('status', makeResponder(''));
         });
 
         describe("when working copy is not changed", function() {
@@ -403,10 +405,9 @@ describe("release command", function() {
           });
         });
 
-        describe("hooks", function () {
+        describe("lifecycle hooks", function () {
           beforeEach(function() {
             repo.respondTo('currentBranch', makeResponder('master'));
-            repo.respondTo('status', makeResponder('M package.json'));
           });
 
           function fileExists(filePath) {
@@ -421,6 +422,7 @@ describe("release command", function() {
             copyFixture('project-with-bad-config');
             var cmd = createCommand();
 
+            repo.respondTo('status', makeResponder(' M package.json'));
             repo.respondTo('createTag', makeResponder(null));
             repo.respondTo('commitAll', makeResponder(null));
 
@@ -432,20 +434,29 @@ describe("release command", function() {
           it("should execute hooks in the correct order", function () {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
+            var assertionCount = 0;
 
-            expect(fileExists('before-commit.txt'), 'beforeCommit not called yet').to.be.false;
+            expect(fileExists('init.txt'), 'init not called yet').to.be.false;
 
+            repo.respondTo('status', function() {
+              expect(fileExists('init.txt'), 'init called').to.be.true;
+              assertionCount++;
+              return ' M package.json';
+            });
             repo.respondTo('commitAll', function() {
               expect(fileExists('before-commit.txt'), 'beforeCommit called').to.be.true;
+              assertionCount++;
             });
             repo.respondTo('createTag', makeResponder(null));
             repo.respondTo('push', function() {
               expect(fileExists('after-push.txt'), 'afterPush not called yet').to.be.false;
+              assertionCount++;
             });
             repo.respondTo('push', makeResponder(null));
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
               expect(fileExists('after-push.txt'), 'afterPush called').to.be.true;
+              expect(assertionCount, 'all assertions ran').to.equal(3);
             });
           });
 
@@ -453,12 +464,14 @@ describe("release command", function() {
             copyFixture('project-with-hooks-config');
             var cmd = createCommand();
 
+            repo.respondTo('status', makeResponder(' M package.json'));
             repo.respondTo('commitAll', makeResponder(null));
             repo.respondTo('createTag', makeResponder(null));
             repo.respondTo('push', makeResponder(null));
             repo.respondTo('push', makeResponder(null));
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
+              expect(fileContents('init.txt')).to.equal(nextTag);
               expect(fileContents('before-commit.txt')).to.equal(nextTag);
               expect(fileContents('after-push.txt')).to.equal(nextTag);
             });
