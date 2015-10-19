@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.2.8 (October 19, 2015)
+
+* Hook argument readme clarification (@rwjblue)
+* Removed require of ember-cli classes
+* Added `init` hook
+
 ### v0.2.7 (September 24, 2015)
 
 * Prevent untracked files from being added to the release commit
