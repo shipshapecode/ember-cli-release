@@ -85,7 +85,10 @@ describe("release command", function() {
         return repo;
       }
     });
-    return new ReleaseCommand(options);
+
+    var TestReleaseCommand = Command.extend(ReleaseCommand);
+
+    return new TestReleaseCommand(options);
   }
 
   describe("when HEAD is at a tag", function() {
