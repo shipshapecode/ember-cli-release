@@ -28,6 +28,14 @@ describe("release command", function() {
   var project;
   var repo;
 
+  function fileExists(filePath) {
+    return fs.existsSync(path.join(project.root, filePath));
+  }
+
+  function fileContents(filePath) {
+    return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
+  }
+
   beforeEach(function() {
     ui = new MockUI();
     analytics = new MockAnalytics();
@@ -359,7 +367,7 @@ describe("release command", function() {
                         type: String,
                       },
                     ],
-                    getNextTag: function(tags, options) {
+                    getNextTag: function(project, tags, options) {
                       strategyTags = tags;
                       strategyOptions = options;
 
@@ -420,14 +428,6 @@ describe("release command", function() {
           beforeEach(function() {
             repo.respondTo('currentBranch', makeResponder('master'));
           });
-
-          function fileExists(filePath) {
-            return fs.existsSync(path.join(project.root, filePath));
-          }
-
-          function fileContents(filePath) {
-            return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
-          }
 
           it("should print a warning about non-function hooks", function() {
             copyFixture('project-with-bad-config');
@@ -570,6 +570,21 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--strategy', 'semver', '--local', '--yes' ]).then(function() {
               expect(createdTagName).to.equal(nextTag);
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+
+          it("should use the strategy defined in the config file", function() {
+            var tagNames = tags.map(function(tag) { return tag.name; });
+            var tagName = 'foo';
+
+            copyFixture('project-with-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              expect(JSON.parse(fileContents('tags.json'))).to.deep.equal(tagNames);
+              expect(ui.output).to.contain("Successfully created git tag '" + tagName + "' locally.");
             });
           });
         });
