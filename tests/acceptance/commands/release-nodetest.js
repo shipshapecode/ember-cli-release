@@ -344,17 +344,27 @@ describe("release command", function() {
           it("should use the strategy specified by the --strategy option, passing tags and options", function() {
             var tagNames = tags.map(function(tag) { return tag.name; });
             var createdTagName, strategyTags, strategyOptions;
-            var dateFormat = 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]';
-            var timezone = 'America/Los_Angeles';
 
             var cmd = createCommand({
               strategies: function() {
                 return {
-                  foo: function(tags, options) {
-                    strategyTags = tags;
-                    strategyOptions = options;
+                  foo: {
+                    availableOptions: [
+                      {
+                        name: 'bar',
+                        type: Boolean,
+                      },
+                      {
+                        name: 'baz',
+                        type: String,
+                      },
+                    ],
+                    getNextTag: function(tags, options) {
+                      strategyTags = tags;
+                      strategyOptions = options;
 
-                    return { next: 'foo' };
+                      return { next: 'foo' };
+                    }
                   }
                 };
               }
@@ -370,12 +380,11 @@ describe("release command", function() {
               return null;
             });
 
-            return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--major', '--format', dateFormat, '--timezone', timezone ]).then(function() {
+            return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--bar', '--baz', 'quux' ]).then(function() {
               expect(createdTagName).to.equal('foo');
               expect(strategyTags).to.deep.equal(tagNames);
-              expect(strategyOptions.major).to.be.true;
-              expect(strategyOptions.format).to.equal(dateFormat);
-              expect(strategyOptions.timezone).to.equal(timezone);
+              expect(strategyOptions.bar).to.be.true;
+              expect(strategyOptions.baz).to.equal('quux');
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
