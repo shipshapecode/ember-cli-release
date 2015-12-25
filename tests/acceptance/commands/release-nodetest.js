@@ -348,13 +348,15 @@ describe("release command", function() {
             var timezone = 'America/Los_Angeles';
 
             var cmd = createCommand({
-              strategies: {
-                foo: function(tags, options) {
-                  strategyTags = tags;
-                  strategyOptions = options;
+              strategies: function() {
+                return {
+                  foo: function(tags, options) {
+                    strategyTags = tags;
+                    strategyOptions = options;
 
-                  return { next: 'foo' };
-                }
+                    return { next: 'foo' };
+                  }
+                };
               }
             });
 
