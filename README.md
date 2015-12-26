@@ -91,13 +91,39 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
   Default: `false`
 
-  Increment the MAJOR SemVer version, takes precedence over `minor`. Only used when the `strategy` option is `'semver'`.
+  Increment the **major** SemVer version, takes precedence over `minor`. Only used when the `strategy` option is `'semver'`.
 
 - `minor`\*
 
   Default: `false`
 
-  Increment the MINOR SemVer version, if both `major` and `minor` are false, PATCH is incremented. Only used when the `strategy` option is `'semver'`.
+  Increment the **minor** SemVer version, if both `major` and `minor` are false, **patch** is incremented. Only used when the `strategy` option is `'semver'`.
+
+- `premajor`\*
+
+  Default: `''`
+
+  Increment the **major** SemVer version, and add given prerelease identifier with version of `0`. Only used when the `strategy` option is `'semver'`, and ignored if `major` or `minor` are specified.
+
+- `preminor`\*
+
+  Default: `''`
+
+  Increment the **minor** SemVer version, and add given prerelease identifier with version of `0`. Only used when the `strategy` option is `'semver'`, and ignored if `major`, `minor`, or `premajor` are specified.
+
+- `prerelease`\*
+
+  Default: `false`
+
+  When using SemVer, has multiple behaviors:
+
+  - Latest version contains a prerelease identifier
+    - If value is omitted or a string that matches the current identifier, increment the prerelease version.
+    - If value is a string that differs from the current identifier, change the identifier to the one given and reset the prerelease version to `0`.
+  - Latest version does not contain a prerelease identifier
+    - Increment the **patch** version and append the given prerelease identifier (the value must be a string).
+
+  Only used when the `strategy` option is `'semver'`, and ignored if `major`, `minor`, `premajor`, or `preminor` are specified.
 
 - `format`
 
@@ -347,13 +373,29 @@ These are the steps that take place when running the `release` command (unchecke
 To create a new tag based on the date in east cost time with a custom format:
 
 ```sh
-$ ember release --strategy=date --format="YYYY-MM-DD" --timezone="America/New_York"
+> ember release --strategy=date --format="YYYY-MM-DD" --timezone="America/New_York"
 ```
 
 Or to create a specific tag (no versioning strategy) with annotation, locally only:
 
 ```sh
-$ ember release --local --tag="what_am_i_doing" --annotation="First version wooooo!"
+> ember release --local --tag="what_am_i_doing" --annotation="First version wooooo!"
+```
+
+To create a series of SemVer prereleases, use the `--premajor` (or `--preminor`) option followed by any number of `--prerelease`s, and finally `--major` (or `--minor`):
+
+```sh
+# v1.3.2
+> ember release --premajor alpha
+# v2.0.0-alpha.0
+> ember release --prerelease
+# v2.0.0-alpha.1
+> ember release --prerelease beta
+# v2.0.0-beta.0
+> ember release --prerelease
+# v2.0.0-beta.1
+> ember release --major
+# v2.0.0
 ```
 
 ## Contributing
