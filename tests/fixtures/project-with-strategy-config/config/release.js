@@ -6,9 +6,7 @@ var path = require('path');
 module.exports = {
   strategy: function(project, tags) {
     return writeFile(project.root, 'tags.json', JSON.stringify(tags)).then(function() {
-      return {
-        next: 'foo'
-      };
+      return 'foo';
     });
   }
 };

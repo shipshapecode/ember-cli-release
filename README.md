@@ -257,7 +257,7 @@ There are three lifecycle hooks available:
 
 ## Custom Tagging Strategy
 
-If your app does not use SemVer or date-based tags, you may specify a custom method for generating the next tag by making the `strategy` property a function in `config/release.js`. The function takes three arguments: the project instance, an array of existing git tags, and an options hash with all option values. It must return an object with a `next` property specifying the next tag, and optionally a `latest` property indicating the most current tag. The function may also return a promise that resolves with the tag object. For example:
+If your app does not use SemVer or date-based tags, you may specify a custom method for generating the next tag by making the `strategy` property a function in `config/release.js`. The function takes three arguments: the project instance, an array of existing git tags, and an options hash with all option values. It must return a non-empty string specifying the next tag, or a promise that resolves with the tag name. For example:
 
 ```js
 // config/release.js
@@ -270,15 +270,12 @@ module.exports = {
       .sort()
       .reverse();
 
-    return {
-      latest: builds[0],
-      next: builds[0] + 1
-    }
+    return builds[0] + 1;
   }
 };
 ```
 
-Alternatively, if the custom strategy requires additional CLI options, an object can be specified with `availableOptions` and `getNextTag` properties:
+Alternatively, if the custom strategy requires additional CLI options, an object can be specified with `availableOptions`, `getLatestTag`, and `getNextTag` properties:
 
 ```js
 // config/release.js
@@ -293,14 +290,19 @@ module.exports = {
       },
     ],
 
+    getLatestTag: function(project, tags, options) {
+      // Find the latest tag in the `tags` array
+      var latest = '...';
+
+      return latest;
+    },
+
     getNextTag: function(project, tags, options) {
       // Generate an identifier
-      var id = '...';
+      var next = '...';
 
       // Prepend the specified channel
-      return {
-        next: options.channel + '-' + id
-      }
+      return options.channel + '-' + next;
     }
   }
 };
