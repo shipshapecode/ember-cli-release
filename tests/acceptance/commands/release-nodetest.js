@@ -588,6 +588,20 @@ describe("release command", function() {
             });
           });
 
+          it("should use the strategy and options defined in the config file", function() {
+            var tagName = 'foo';
+
+            copyFixture('project-with-options-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes', '--foo', 'bar' ]).then(function() {
+              expect(JSON.parse(fileContents('options.json'))).to.have.property('foo', 'bar');
+              expect(ui.output).to.contain("Successfully created git tag '" + tagName + "' locally.");
+            });
+          });
+
           it("should abort if the strategy defined in the config file does not return a valid value", function() {
             var tagNames = tags.map(function(tag) { return tag.name; });
             var tagName = 'foo';
