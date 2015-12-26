@@ -79,4 +79,37 @@ describe("semver strategy", function() {
 
     expect(tagName).to.equal('v0.1.2');
   });
+
+  it("should go through a common release cycle", function() {
+    var tagNames = [ 'v0.1.0' ];
+    var latestTagName, nextTagName;
+    var sequence = [
+      [ {},                       'v0.1.1' ],
+      [ { minor: true },          'v0.2.0' ],
+      [ {},                       'v0.2.1' ],
+      [ {},                       'v0.2.2' ],
+      [ { major: true },          'v1.0.0' ],
+      [ {},                       'v1.0.1' ],
+      [ { prerelease: 'beta' },   'v1.0.2-beta.0' ],
+      [ {},                       'v1.0.2' ],
+      [ { preminor: 'beta' },     'v1.1.0-beta.0' ],
+      [ { prerelease: true },     'v1.1.0-beta.1' ],
+      [ { minor: true },          'v1.1.0' ],
+      [ {},                       'v1.1.1' ],
+      [ { premajor: 'alpha' },    'v2.0.0-alpha.0' ],
+      [ { prerelease: true },     'v2.0.0-alpha.1' ],
+      [ { prerelease: 'beta' },   'v2.0.0-beta.0' ],
+      [ { prerelease: true },     'v2.0.0-beta.1' ],
+      [ { prerelease: true },     'v2.0.0-beta.2' ],
+      [ { major: true },          'v2.0.0' ],
+    ];
+
+    for (var i = 0, l = sequence.length; i < l; i++) {
+      latestTagName = semverStrategy.getLatestTag(project, tagNames, sequence[i][0]);
+      nextTagName = semverStrategy.getNextTag(project, tagNames, sequence[i][0]);
+      expect(latestTagName).to.equal(tagNames[i]);
+      expect(nextTagName).to.equal(sequence[i][1]);
+      tagNames.push(nextTagName);
+    }
+  });
 });
