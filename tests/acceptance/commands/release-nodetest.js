@@ -28,6 +28,14 @@ describe("release command", function() {
   var project;
   var repo;
 
+  function fileExists(filePath) {
+    return fs.existsSync(path.join(project.root, filePath));
+  }
+
+  function fileContents(filePath) {
+    return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
+  }
+
   beforeEach(function() {
     ui = new MockUI();
     analytics = new MockAnalytics();
@@ -344,17 +352,29 @@ describe("release command", function() {
           it("should use the strategy specified by the --strategy option, passing tags and options", function() {
             var tagNames = tags.map(function(tag) { return tag.name; });
             var createdTagName, strategyTags, strategyOptions;
-            var dateFormat = 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]';
-            var timezone = 'America/Los_Angeles';
 
             var cmd = createCommand({
-              strategies: {
-                foo: function(tags, options) {
-                  strategyTags = tags;
-                  strategyOptions = options;
+              strategies: function() {
+                return {
+                  foo: {
+                    availableOptions: [
+                      {
+                        name: 'bar',
+                        type: Boolean,
+                      },
+                      {
+                        name: 'baz',
+                        type: String,
+                      },
+                    ],
+                    getNextTag: function(project, tags, options) {
+                      strategyTags = tags;
+                      strategyOptions = options;
 
-                  return { next: 'foo' };
-                }
+                      return { next: 'foo' };
+                    }
+                  }
+                };
               }
             });
 
@@ -368,12 +388,11 @@ describe("release command", function() {
               return null;
             });
 
-            return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--major', '--format', dateFormat, '--timezone', timezone ]).then(function() {
+            return cmd.validateAndRun([ '--strategy', 'foo', '--local', '--bar', '--baz', 'quux' ]).then(function() {
               expect(createdTagName).to.equal('foo');
               expect(strategyTags).to.deep.equal(tagNames);
-              expect(strategyOptions.major).to.be.true;
-              expect(strategyOptions.format).to.equal(dateFormat);
-              expect(strategyOptions.timezone).to.equal(timezone);
+              expect(strategyOptions.bar).to.be.true;
+              expect(strategyOptions.baz).to.equal('quux');
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
@@ -409,14 +428,6 @@ describe("release command", function() {
           beforeEach(function() {
             repo.respondTo('currentBranch', makeResponder('master'));
           });
-
-          function fileExists(filePath) {
-            return fs.existsSync(path.join(project.root, filePath));
-          }
-
-          function fileContents(filePath) {
-            return fs.readFileSync(path.join(project.root, filePath), { encoding: 'utf8' });
-          }
 
           it("should print a warning about non-function hooks", function() {
             copyFixture('project-with-bad-config');
@@ -559,6 +570,49 @@ describe("release command", function() {
             return cmd.validateAndRun([ '--strategy', 'semver', '--local', '--yes' ]).then(function() {
               expect(createdTagName).to.equal(nextTag);
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
+            });
+          });
+
+          it("should use the strategy defined in the config file", function() {
+            var tagNames = tags.map(function(tag) { return tag.name; });
+            var tagName = 'foo';
+
+            copyFixture('project-with-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+              expect(JSON.parse(fileContents('tags.json'))).to.deep.equal(tagNames);
+              expect(ui.output).to.contain("Successfully created git tag '" + tagName + "' locally.");
+            });
+          });
+
+          it("should use the strategy and options defined in the config file", function() {
+            var tagName = 'foo';
+
+            copyFixture('project-with-options-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes', '--foo', 'bar' ]).then(function() {
+              expect(JSON.parse(fileContents('options.json'))).to.have.property('foo', 'bar');
+              expect(ui.output).to.contain("Successfully created git tag '" + tagName + "' locally.");
+            });
+          });
+
+          it("should abort if the strategy defined in the config file does not return a valid value", function() {
+            var tagNames = tags.map(function(tag) { return tag.name; });
+            var tagName = 'foo';
+
+            copyFixture('project-with-bad-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).catch(function(error) {
+              expect(error.message).to.equal("Tagging strategy must return object with a string `next` property");
             });
           });
         });
