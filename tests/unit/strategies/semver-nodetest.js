@@ -28,16 +28,46 @@ describe("semver strategy", function() {
     expect(tagName).to.equal('3.1.2');
   });
 
-  it("should increment the minor version if specified", function() {
+  it("should increment the minor version", function() {
     var tagName = semverStrategy.getNextTag(project, tagNames, { minor: true });
 
     expect(tagName).to.equal('3.2.0');
   });
 
-  it("should increment the minor version if specified", function() {
+  it("should increment the minor version", function() {
     var tagName = semverStrategy.getNextTag(project, tagNames, { major: true });
 
     expect(tagName).to.equal('4.0.0');
+  });
+
+  it("should increment the major version and add a prerelease identifier", function() {
+    var tagName = semverStrategy.getNextTag(project, tagNames, { premajor: 'alpha' });
+
+    expect(tagName).to.equal('4.0.0-alpha.0');
+  });
+
+  it("should increment the minor version and add a prerelease identifier", function() {
+    var tagName = semverStrategy.getNextTag(project, tagNames, { preminor: 'alpha' });
+
+    expect(tagName).to.equal('3.2.0-alpha.0');
+  });
+
+  it("should add the prerelease version", function() {
+    var tagName = semverStrategy.getNextTag(project, tagNames, { prerelease: 'alpha' });
+
+    expect(tagName).to.equal('3.1.2-alpha.0');
+  });
+
+  it("should add the prerelease version if different from the current identifier", function() {
+    var tagName = semverStrategy.getNextTag(project, tagNames.concat('4.0.0-alpha.0'), { prerelease: 'beta' });
+
+    expect(tagName).to.equal('4.0.0-beta.0');
+  });
+
+  it("should increment the prerelease version", function() {
+    var tagName = semverStrategy.getNextTag(project, tagNames.concat('4.0.0-alpha.0'), { prerelease: 'alpha' });
+
+    expect(tagName).to.equal('4.0.0-alpha.1');
   });
 
   it("should throw if tags are present but none are semver compliant", function() {
