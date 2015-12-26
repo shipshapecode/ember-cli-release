@@ -118,7 +118,7 @@ A set of lifecycle hooks exists as a means to inject additional behavior into th
 Hooks are passed two arguments:
 
   - `project` - a reference to the current ember-cli project
-  - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property. The version will be the exact value that was used for the tag, by default this includes a `v` prefix.
+  - `tags` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property. Note that these values will be the exact values used for the tag, which by default includes a `v` prefix.
 
 There are three lifecycle hooks available:
 
@@ -167,11 +167,11 @@ There are three lifecycle hooks available:
   var xmlpoke = require('xmlpoke');
 
   module.exports = {
-    beforeCommit: function(project, versions) {
+    beforeCommit: function(project, tags) {
       xmlpoke(path.join(project.root, 'cordova/config.xml'), function(xml) {
         xml.errorOnNoMatches();
         xml.addNamespace('w', 'http://www.w3.org/ns/widgets');
-        xml.set('w:widget/@version', versions.next);
+        xml.set('w:widget/@version', tags.next);
       });
     }
   };
@@ -241,12 +241,12 @@ There are three lifecycle hooks available:
 
   module.exports = {
     // Notify the #dev channel when a new release is created
-    afterPush: function(project, versions) {
+    afterPush: function(project, tags) {
       if (isCI && hookURL) {
         var slack = new Slack(hookURL);
 
         return slack.send({
-          text: 'ZOMG, ' + project.name() + ' ' + versions.next + ' RELEASED!!1!',
+          text: 'ZOMG, ' + project.name() + ' ' + tags.next + ' RELEASED!!1!',
           channel: '#dev',
           username: 'Mr. CI'
         });

@@ -238,7 +238,7 @@ describe("release command", function() {
             repo.respondTo('createTag', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-              expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
+              expect(ui.output).to.contain("Latest tag: " + tags[tags.length - 1].name);
             });
           });
 
