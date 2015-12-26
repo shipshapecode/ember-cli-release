@@ -118,7 +118,7 @@ A set of lifecycle hooks exists as a means to inject additional behavior into th
 Hooks are passed two arguments:
 
   - `project` - a reference to the current ember-cli project
-  - `versions` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property. The version will be the exact value that was used for the tag, by default this includes a `v` prefix.
+  - `tags` - an object containing tag information, which will always have a `next` property and depending on the strategy you are using, may also have a `latest` property. Note that these values will be the exact values used for the tag, which by default includes a `v` prefix.
 
 There are three lifecycle hooks available:
 
@@ -167,11 +167,11 @@ There are three lifecycle hooks available:
   var xmlpoke = require('xmlpoke');
 
   module.exports = {
-    beforeCommit: function(project, versions) {
+    beforeCommit: function(project, tags) {
       xmlpoke(path.join(project.root, 'cordova/config.xml'), function(xml) {
         xml.errorOnNoMatches();
         xml.addNamespace('w', 'http://www.w3.org/ns/widgets');
-        xml.set('w:widget/@version', versions.next);
+        xml.set('w:widget/@version', tags.next);
       });
     }
   };
@@ -241,12 +241,12 @@ There are three lifecycle hooks available:
 
   module.exports = {
     // Notify the #dev channel when a new release is created
-    afterPush: function(project, versions) {
+    afterPush: function(project, tags) {
       if (isCI && hookURL) {
         var slack = new Slack(hookURL);
 
         return slack.send({
-          text: 'ZOMG, ' + project.name() + ' ' + versions.next + ' RELEASED!!1!',
+          text: 'ZOMG, ' + project.name() + ' ' + tags.next + ' RELEASED!!1!',
           channel: '#dev',
           username: 'Mr. CI'
         });
@@ -257,7 +257,7 @@ There are three lifecycle hooks available:
 
 ## Custom Tagging Strategy
 
-If your app does not use SemVer or date-based tags, you may specify a custom method for generating the next tag by making the `strategy` property a function in `config/release.js`. The function takes three arguments: the project instance, an array of existing git tags, and an options hash with all option values. It must return an object with a `next` property specifying the next tag, and optionally a `latest` property indicating the most current tag. The function may also return a promise that resolves with the tag object. For example:
+If your app does not use SemVer or date-based tags, you may specify a custom method for generating the next tag by making the `strategy` property a function in `config/release.js`. The function takes three arguments: the project instance, an array of existing git tags, and an options hash with all option values. It must return a non-empty string specifying the next tag, or a promise that resolves with the tag name. For example:
 
 ```js
 // config/release.js
@@ -270,15 +270,12 @@ module.exports = {
       .sort()
       .reverse();
 
-    return {
-      latest: builds[0],
-      next: builds[0] + 1
-    }
+    return builds[0] + 1;
   }
 };
 ```
 
-Alternatively, if the custom strategy requires additional CLI options, an object can be specified with `availableOptions` and `getNextTag` properties:
+Alternatively, if the custom strategy requires additional CLI options, an object can be specified with `availableOptions`, `getLatestTag`, and `getNextTag` properties:
 
 ```js
 // config/release.js
@@ -293,14 +290,19 @@ module.exports = {
       },
     ],
 
+    getLatestTag: function(project, tags, options) {
+      // Find the latest tag in the `tags` array
+      var latest = '...';
+
+      return latest;
+    },
+
     getNextTag: function(project, tags, options) {
       // Generate an identifier
-      var id = '...';
+      var next = '...';
 
       // Prepend the specified channel
-      return {
-        next: options.channel + '-' + id
-      }
+      return options.channel + '-' + next;
     }
   }
 };

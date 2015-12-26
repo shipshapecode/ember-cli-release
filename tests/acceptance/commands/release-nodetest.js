@@ -238,7 +238,7 @@ describe("release command", function() {
             repo.respondTo('createTag', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
-              expect(ui.output).to.contain("Latest version: " + tags[tags.length - 1].name);
+              expect(ui.output).to.contain("Latest tag: " + tags[tags.length - 1].name);
             });
           });
 
@@ -371,7 +371,7 @@ describe("release command", function() {
                       strategyTags = tags;
                       strategyOptions = options;
 
-                      return { next: 'foo' };
+                      return 'foo';
                     }
                   }
                 };
@@ -612,7 +612,7 @@ describe("release command", function() {
             repo.respondTo('createTag', makeResponder(null));
 
             return cmd.validateAndRun([ '--local', '--yes' ]).catch(function(error) {
-              expect(error.message).to.equal("Tagging strategy must return object with a string `next` property");
+              expect(error.message).to.equal("Tagging strategy must return a non-empty tag name");
             });
           });
         });

@@ -11,33 +11,33 @@ describe("semver strategy", function() {
   var project = {};
 
   it("should provide a default tag", function() {
-    var tag = semverStrategy.getNextTag(project, [], {});
+    var tagName = semverStrategy.getNextTag(project, [], {});
 
-    expect(tag.next).to.equal('v0.1.0');
+    expect(tagName).to.equal('v0.1.0');
   });
 
   it("should return the latest tag if available", function() {
-    var tag = semverStrategy.getNextTag(project, tagNames, {});
+    var tagName = semverStrategy.getLatestTag(project, tagNames, {});
 
-    expect(tag.latest).to.equal('3.1.1');
+    expect(tagName).to.equal('3.1.1');
   });
 
   it("should default to incrementing the patch version", function() {
-    var tag = semverStrategy.getNextTag(project, tagNames, {});
+    var tagName = semverStrategy.getNextTag(project, tagNames, {});
 
-    expect(tag.next).to.equal('3.1.2');
+    expect(tagName).to.equal('3.1.2');
   });
 
   it("should increment the minor version if specified", function() {
-    var tag = semverStrategy.getNextTag(project, tagNames, { minor: true });
+    var tagName = semverStrategy.getNextTag(project, tagNames, { minor: true });
 
-    expect(tag.next).to.equal('3.2.0');
+    expect(tagName).to.equal('3.2.0');
   });
 
   it("should increment the minor version if specified", function() {
-    var tag = semverStrategy.getNextTag(project, tagNames, { major: true });
+    var tagName = semverStrategy.getNextTag(project, tagNames, { major: true });
 
-    expect(tag.next).to.equal('4.0.0');
+    expect(tagName).to.equal('4.0.0');
   });
 
   it("should throw if tags are present but none are semver compliant", function() {
@@ -45,8 +45,8 @@ describe("semver strategy", function() {
   });
 
   it("should add the 'v' prefix to tags if it's used in the latest tag", function() {
-    var tag = semverStrategy.getNextTag(project, [ '0.1.0', 'v0.1.1' ], {});
+    var tagName = semverStrategy.getNextTag(project, [ '0.1.0', 'v0.1.1' ], {});
 
-    expect(tag.next).to.equal('v0.1.2');
+    expect(tagName).to.equal('v0.1.2');
   });
 });

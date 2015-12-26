@@ -15,9 +15,7 @@ module.exports = {
     getNextTag: function(project, tags, options) {
       writeFile(project.root, 'options.json', JSON.stringify(options));
 
-      return {
-        next: 'foo'
-      };
+      return 'foo';
     }
   }
 };
