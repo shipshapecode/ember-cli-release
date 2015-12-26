@@ -587,6 +587,20 @@ describe("release command", function() {
               expect(ui.output).to.contain("Successfully created git tag '" + tagName + "' locally.");
             });
           });
+
+          it("should abort if the strategy defined in the config file does not return a valid value", function() {
+            var tagNames = tags.map(function(tag) { return tag.name; });
+            var tagName = 'foo';
+
+            copyFixture('project-with-bad-strategy-config');
+            var cmd = createCommand();
+
+            repo.respondTo('createTag', makeResponder(null));
+
+            return cmd.validateAndRun([ '--local', '--yes' ]).catch(function(error) {
+              expect(error.message).to.equal("Tagging strategy must return object with a string `next` property");
+            });
+          });
         });
 
         describe("when working copy is changed", function() {
