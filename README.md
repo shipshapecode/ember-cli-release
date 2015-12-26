@@ -255,6 +255,57 @@ There are three lifecycle hooks available:
   };
   ```
 
+## Custom Tagging Strategy
+
+If your app does not use SemVer or date-based tags, you may specify a custom method for generating the next tag by making the `strategy` property a function in `config/release.js`. The function takes three arguments: the project instance, an array of existing git tags, and an options hash with all option values. It must return an object with a `next` property specifying the next tag, and optionally a `latest` property indicating the most current tag. The function may also return a promise that resolves with the tag object. For example:
+
+```js
+// config/release.js
+module.exports = {
+  // Emulate Subversion-style build numbers
+  strategy: function(project, tags, options) {
+    var builds = tags
+      .map(function(tag) { return +tag; })
+      .filter(function(build) { return !isNaN(build); })
+      .sort()
+      .reverse();
+
+    return {
+      latest: builds[0],
+      next: builds[0] + 1
+    }
+  }
+};
+```
+
+Alternatively, if the custom strategy requires additional CLI options, an object can be specified with `availableOptions` and `getNextTag` properties:
+
+```js
+// config/release.js
+module.exports = {
+  strategy: {
+    availableOptions: [
+      {
+        name: 'channel',
+        type: String,
+        default: 'stable',
+        description: "the release's channel"
+      },
+    ],
+
+    getNextTag: function(project, tags, options) {
+      // Generate an identifier
+      var id = '...';
+
+      // Prepend the specified channel
+      return {
+        next: options.channel + '-' + id
+      }
+    }
+  }
+};
+```
+
 ## Workflow
 
 These are the steps that take place when running the `release` command (unchecked steps have not yet been implemented):
@@ -262,7 +313,8 @@ These are the steps that take place when running the `release` command (unchecke
 1. ☑ Abort if HEAD is already at a tag
 2. ☑ Calculate new version
   1. Use `tag` option if present
-  2. Generate new version using `strategy` option (default: 'semver')
+  2. Invoke custom tagging strategy if specified
+  3. Otherwise, generate new version using `strategy` option (default: 'semver')
     - SemVer
       1. Look for latest tag using `node-semver` ordering
       2. Increment based on `major`, `minor`, or `patch` (default: `patch`)
