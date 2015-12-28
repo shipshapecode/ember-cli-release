@@ -27,6 +27,7 @@
     "merge": "^1.2.0",
     "moment-timezone": "^0.3.0",
     "nopt": "^3.0.3",
+    "npm": "~3.5.2",
     "require-dir": "^0.3.0",
     "rsvp": "^3.0.17",
     "semver": "^4.3.1",
