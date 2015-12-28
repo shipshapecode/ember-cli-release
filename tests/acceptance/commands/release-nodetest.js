@@ -2,18 +2,19 @@
 
 'use strict';
 
-var expect         = require('chai').expect;
-var fs             = require('fs-extra');
-var path           = require('path');
-var merge          = require('merge');
-var rimraf         = require('rimraf');
-var MockUI         = require('ember-cli/tests/helpers/mock-ui');
-var MockAnalytics  = require('ember-cli/tests/helpers/mock-analytics');
-var Command        = require('ember-cli/lib/models/command');
-var MockRepo       = require('../../helpers/mock-git');
+var expect = require('chai').expect;
+var fs = require('fs-extra');
+var path = require('path');
+var merge = require('merge');
+var rimraf = require('rimraf');
+var MockUI = require('ember-cli/tests/helpers/mock-ui');
+var MockAnalytics = require('ember-cli/tests/helpers/mock-analytics');
+var Command = require('ember-cli/lib/models/command');
 var ReleaseCommand = require('../../../lib/commands/release');
-var EOL            = require('os').EOL;
-var RSVP           = require('rsvp');
+var GitRepo = require('../../../lib/utils/git');
+var Mock = require('../../helpers/mock');
+var EOL = require('os').EOL;
+var RSVP = require('rsvp');
 
 var rootPath = process.cwd();
 var fixturePath = path.join(rootPath, 'tests/fixtures');
@@ -39,7 +40,7 @@ describe("release command", function() {
   beforeEach(function() {
     ui = new MockUI();
     analytics = new MockAnalytics();
-    repo = new MockRepo();
+    repo = new Mock(GitRepo);
 
     rimraf.sync('tmp');
     fs.mkdirSync('tmp');
