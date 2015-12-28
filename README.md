@@ -75,6 +75,12 @@ Options can be specified on the command line or in `config/release.js` unless ma
 
   A set of JSON manifest files to replace the top-level `version` key in with the new tag name.
 
+- `publish`
+
+  Default: `false`
+
+  Whether to publish the package to NPM after tagging or not. Uses the currently logged in NPM user and the registry as defined in the project's [`package.json`](https://docs.npmjs.com/files/package.json#publishconfig).
+
 - `yes`\*
 
   Default: `false`
@@ -158,23 +164,11 @@ There are three lifecycle hooks available:
 
   ```js
   // config/release.js
-  var RSVP = require('rsvp');
-  var npmWhoami = require('npm-whoami');
-
-  // Create promise friendly version of the node-style async method
-  var whoami = RSVP.denodeify(npmWhoami);
-
   module.exports = {
     init: function() {
       if (!process.env.SUPER_SECRET_KEY) {
         throw 'Super secret key missing!';
       }
-
-      return whoami().then(function(username) {
-        if (!username) {
-          throw 'No NPM user authorized, cannot publish!';
-        }
-      });
     }
   };
   ```
@@ -228,32 +222,9 @@ There are three lifecycle hooks available:
 
 - `afterPush`
 
-  Called after successfully pushing all changes to the specified remote, but before exiting. Use this hook for post-release tasks like publishing, cleanup, or sending notifications from your CI server.
+  Called after successfully pushing all changes to the specified remote, but before exiting. Use this hook for post-release tasks like cleanup or sending notifications from your CI server.
 
   ###### Example Usage
-
-  Publishing:
-
-  ```js
-  // config/release.js
-  var RSVP = require('rsvp');
-  var publisher = require('publish');
-
-  // Create promise friendly versions of the methods we want to use
-  var start = RSVP.denodeify(publisher.start);
-  var publish = RSVP.denodeify(publisher.publish);
-
-  module.exports = {
-    // Publish the new release to NPM after a successful push
-    // If run from travis, this will look for the NPM_USERNAME, NPM_PASSWORD and
-    // NPM_EMAIL environment variables to publish the package as
-    afterPush: function() {
-      return start().then(function() {
-        return publish({});
-      });
-    }
-  };
-  ```
 
   Notification:
 
@@ -280,6 +251,10 @@ There are three lifecycle hooks available:
     }
   };
   ```
+
+- `afterPublish`
+
+  Called after successfully publishing the package to NPM, but before exiting. Use this hook exactly as `afterPush` is used when performing a publish. Note that this hook is not run when `--publish` option is not set.
 
 ## Custom Tagging Strategy
 
@@ -339,7 +314,8 @@ module.exports = {
 These are the steps that take place when running the `release` command (unchecked steps have not yet been implemented):
 
 1. ☑ Abort if HEAD is already at a tag
-2. ☑ Calculate new version
+2. ☑ Abort if `publish` option is `true` and no NPM user is logged in or `strategy` is not 'semver'
+3. ☑ Calculate new version
   1. Use `tag` option if present
   2. Invoke custom tagging strategy if specified
   3. Otherwise, generate new version using `strategy` option (default: 'semver')
@@ -350,23 +326,24 @@ These are the steps that take place when running the `release` command (unchecke
       1. Create tag name based on current date and `format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-3. ☑ Invoke the `init` hook
-4. ☑ If working tree is dirty, prompt user that their changes will be included in release commit
-5. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
-6. ◻ Run `ember build` if `build` option is `true` (default: `false`)
-7. ◻ Generate changelog entry and append to `CHANGELOG.md`
-8. ☑ Invoke the `beforeCommit` hook
-9. ☑ Commit changes
+4. ☑ Invoke the `init` hook
+5. ☑ If working tree is dirty, prompt user that their changes will be included in release commit
+6. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
+7. ◻ Run `ember build` if `build` option is `true` (default: `false`)
+8. ◻ Generate changelog entry and append to `CHANGELOG.md`
+9. ☑ Invoke the `beforeCommit` hook
+10. ☑ Commit changes
   1. Skip if working tree is unmodified
   2. Stage all changes and commit with `message` option as the commit message
-10. ☑ Create tag
+11. ☑ Create tag
   1. Prompt to continue with new tag name
   2. Tag the latest commit with new version using the `annotation` option if specified
-11. ☑ Push to remote
+12. ☑ Push to remote
   1. Skip if `local` option is `true` (default: `false`)
   2. Push current branch and tags to remote specified by `remote` option
-12. ☑ Invoke the `afterPush` hook
-13. ◻ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
+13. ☑ Invoke the `afterPush` hook
+14. ☑ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
+15. ☑ Invoke the `afterPublish` hook
 
 ## Examples
 
