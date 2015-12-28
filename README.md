@@ -311,11 +311,11 @@ module.exports = {
 
 ## Workflow
 
-These are the steps that take place when running the `release` command (unchecked steps have not yet been implemented):
+These are the steps that take place when running the `release` command:
 
-1. ☑ Abort if HEAD is already at a tag
-2. ☑ Abort if `publish` option is `true` and no NPM user is logged in or `strategy` is not 'semver'
-3. ☑ Calculate new version
+1. Abort if HEAD is already at a tag
+2. Abort if `publish` option is `true` and no NPM user is logged in or `strategy` is not 'semver'
+3. Calculate new version
   1. Use `tag` option if present
   2. Invoke custom tagging strategy if specified
   3. Otherwise, generate new version using `strategy` option (default: 'semver')
@@ -326,24 +326,22 @@ These are the steps that take place when running the `release` command (unchecke
       1. Create tag name based on current date and `format` option (default: `YYYY.MM.DD`)
       2. Look for existing tag of same name, append `.X` where X is an incrementing integer
   3. Print new version name
-4. ☑ Invoke the `init` hook
-5. ☑ If working tree is dirty, prompt user that their changes will be included in release commit
-6. ☑ Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
-7. ◻ Run `ember build` if `build` option is `true` (default: `false`)
-8. ◻ Generate changelog entry and append to `CHANGELOG.md`
-9. ☑ Invoke the `beforeCommit` hook
-10. ☑ Commit changes
+4. Invoke the `init` hook
+5. If working tree is dirty, prompt user that their changes will be included in release commit
+6. Replace `version` property of files specified by the `manifest` option (default: `package.json`/`bower.json`)
+7. Invoke the `beforeCommit` hook
+8. Commit changes
   1. Skip if working tree is unmodified
   2. Stage all changes and commit with `message` option as the commit message
-11. ☑ Create tag
+9. Create tag
   1. Prompt to continue with new tag name
   2. Tag the latest commit with new version using the `annotation` option if specified
-12. ☑ Push to remote
+10. Push to remote
   1. Skip if `local` option is `true` (default: `false`)
   2. Push current branch and tags to remote specified by `remote` option
-13. ☑ Invoke the `afterPush` hook
-14. ☑ Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
-15. ☑ Invoke the `afterPublish` hook
+11. Invoke the `afterPush` hook
+12. Publish package to NPM using current credentials if `publish` option is `true` (default: `false`)
+13. Invoke the `afterPublish` hook
 
 ## Examples
 
