@@ -9,13 +9,17 @@ function Mock(constructor) {
   var callbacks = {};
   var proto = constructor.prototype;
   var className = constructor.toString();
-
   var methodNames = [];
+  var propNames = [];
 
-  Object.keys(proto).forEach(function(methodName) {
-    // Ignore the constructor
-    if (proto[methodName] !== proto) {
-      methodNames.push(methodName);
+  Object.keys(proto).forEach(function(propName) {
+    if (typeof proto[propName] === 'function') {
+      // Ignore the constructor
+      if (proto[propName] !== proto) {
+        methodNames.push(propName);
+      }
+    } else {
+      propNames.push(propName);
     }
   });
 
@@ -39,6 +43,23 @@ function Mock(constructor) {
 
       return RSVP.Promise.resolve(response);
     };
+  });
+
+  propNames.forEach(function(propName) {
+    Object.defineProperty(mock, propName, {
+      get: function() {
+        var propCallbacks = callbacks[propName];
+
+        if (!propCallbacks || !propCallbacks.length) {
+          throw new Error(className + " getter '" + propName + "' called but no handler was provided");
+        }
+
+        var value = propCallbacks.shift().apply(null, arguments);
+
+        return value;
+      },
+      enumerable: true,
+    });
   });
 }
 
