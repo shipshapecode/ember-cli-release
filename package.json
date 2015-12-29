@@ -27,6 +27,7 @@
     "merge": "^1.2.0",
     "moment-timezone": "^0.3.0",
     "nopt": "^3.0.3",
+    "npm": "~3.5.2",
     "require-dir": "^0.3.0",
     "rsvp": "^3.0.17",
     "semver": "^4.3.1",
@@ -34,7 +35,7 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "ember-cli": "1.13.8",
+    "ember-cli": "1.13.13",
     "ember-cli-dependency-checker": "1.1.0",
     "fs-extra": "^0.18.0",
     "glob": "^5.0.1",

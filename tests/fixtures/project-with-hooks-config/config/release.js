@@ -12,14 +12,14 @@ module.exports = {
   },
   afterPush: function(project, versions) {
     return writeFile(project.root, 'after-push.txt', versions.next);
-  }
+  },
+  afterPublish: function(project, versions) {
+    return writeFile(project.root, 'after-publish.txt', versions.next);
+  },
 };
 
 function writeFile(rootPath, filePath, contents) {
   return new RSVP.Promise(function(resolve, reject) {
-    fs.writeFile(
-      path.join(rootPath, filePath),
-      contents,
-      resolve);
+    fs.writeFile(path.join(rootPath, filePath), contents, resolve);
   });
 }

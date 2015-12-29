@@ -2,18 +2,20 @@
 
 'use strict';
 
-var expect         = require('chai').expect;
-var fs             = require('fs-extra');
-var path           = require('path');
-var merge          = require('merge');
-var rimraf         = require('rimraf');
-var MockUI         = require('ember-cli/tests/helpers/mock-ui');
-var MockAnalytics  = require('ember-cli/tests/helpers/mock-analytics');
-var Command        = require('ember-cli/lib/models/command');
-var MockRepo       = require('../../helpers/mock-git');
+var expect = require('chai').expect;
+var fs = require('fs-extra');
+var path = require('path');
+var merge = require('merge');
+var rimraf = require('rimraf');
+var MockUI = require('ember-cli/tests/helpers/mock-ui');
+var MockAnalytics = require('ember-cli/tests/helpers/mock-analytics');
+var Command = require('ember-cli/lib/models/command');
 var ReleaseCommand = require('../../../lib/commands/release');
-var EOL            = require('os').EOL;
-var RSVP           = require('rsvp');
+var GitRepo = require('../../../lib/utils/git');
+var NPM = require('../../../lib/utils/npm');
+var Mock = require('../../helpers/mock');
+var EOL = require('os').EOL;
+var RSVP = require('rsvp');
 
 var rootPath = process.cwd();
 var fixturePath = path.join(rootPath, 'tests/fixtures');
@@ -23,10 +25,7 @@ function copyFixture(name) {
 }
 
 describe("release command", function() {
-  var ui;
-  var analytics;
-  var project;
-  var repo;
+  var ui, analytics, project, repo, npm;
 
   function fileExists(filePath) {
     return fs.existsSync(path.join(project.root, filePath));
@@ -39,7 +38,8 @@ describe("release command", function() {
   beforeEach(function() {
     ui = new MockUI();
     analytics = new MockAnalytics();
-    repo = new MockRepo();
+    repo = new Mock(GitRepo);
+    npm = new Mock(NPM);
 
     rimraf.sync('tmp');
     fs.mkdirSync('tmp');
@@ -91,7 +91,10 @@ describe("release command", function() {
       settings: {},
       git: function() {
         return repo;
-      }
+      },
+      npm: function() {
+        return npm;
+      },
     });
 
     var TestReleaseCommand = Command.extend(ReleaseCommand);
@@ -424,6 +427,142 @@ describe("release command", function() {
           });
         });
 
+        describe("when --publish option is set", function() {
+          it("should abort if --local option is set", function() {
+            var cmd = createCommand();
+
+            return cmd.validateAndRun([ '--publish', '--local' ]).catch(function(error) {
+              expect(error.message).to.equal("The --publish and --local options are incompatible.");
+            });
+          });
+
+          it("should abort if --strategy option is not 'semver'", function() {
+            var cmd = createCommand();
+
+            return cmd.validateAndRun([ '--publish', '--strategy', 'date' ]).catch(function(error) {
+              expect(error.message).to.equal("Publishing to NPM requires SemVer.");
+            });
+          });
+
+          it("should abort if NPM user is not logged in", function() {
+            var cmd = createCommand();
+
+            npm.respondTo('whoami', function() {
+              return RSVP.reject({
+                code: 'ENEEDAUTH'
+              });
+            });
+
+            return cmd.validateAndRun([ '--publish' ]).catch(function(error) {
+              expect(error.message).to.equal("Must be logged in to preform NPM publish.");
+            });
+          });
+
+          it("should print the NPM registry and user", function() {
+            var cmd = createCommand();
+            var username = 'foo';
+            var registry = 'bar';
+
+            npm.respondTo('whoami', makeResponder(username));
+            npm.respondTo('config', function() {
+              return {
+                get: function(option) {
+                  return option === 'registry' ? registry : null;
+                }
+              };
+            });
+            repo.respondTo('status', makeResponder(''));
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('n' + EOL);
+            });
+
+            return cmd.validateAndRun([ '--publish' ]).then(function() {
+              expect(ui.output).to.equal("Using NPM registry " + registry + " as user '" + username + "'");
+            }).catch(function() {});
+          });
+
+          it("should confirm publish and print package name/version", function() {
+            copyFixture('project-with-no-config');
+            var cmd = createCommand();
+            var packageName = 'foo';
+            var packageVersion = '1.0.2';
+
+            npm.respondTo('whoami', makeResponder(''));
+            npm.respondTo('config', function() {
+              return {
+                get: function() {}
+              };
+            });
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('commitAll', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+
+            ui.waitForPrompt().then(function() {
+              ui.inputStream.write('y' + EOL);
+
+              return ui.waitForPrompt();
+            }).then(function() {
+              ui.inputStream.write('n' + EOL);
+            });
+
+            return cmd.validateAndRun([ '--publish' ]).catch(function(error) {
+              expect(ui.output).to.contain("About to publish " + packageName + "@" + packageVersion + ", proceed?");
+              expect(error.message).to.equal("Aborted.");
+            });
+          });
+
+          it("should publish to NPM using package.json at the project root", function() {
+            copyFixture('project-with-no-config');
+            var cmd = createCommand();
+            var publishCalled = false;
+
+            npm.respondTo('whoami', makeResponder(''));
+            npm.respondTo('config', function() {
+              return {
+                get: function() {}
+              };
+            });
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('commitAll', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+            npm.respondTo('publish', function(args) {
+              publishCalled = true;
+              expect(args[0]).to.equal(project.root);
+            });
+
+            return cmd.validateAndRun([ '--publish', '--yes' ]).then(function() {
+              expect(publishCalled).to.be.true;
+              expect(ui.output).to.contain("Publish succesful.");
+            });
+          });
+
+          it("should print the error if NPM publish failed", function() {
+            copyFixture('project-with-no-config');
+            var cmd = createCommand();
+
+            npm.respondTo('whoami', makeResponder(''));
+            npm.respondTo('config', function() {
+              return {
+                get: function() {}
+              };
+            });
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('commitAll', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+            npm.respondTo('publish', function() {
+              return RSVP.reject(new Error('nope'));
+            });
+
+            return cmd.validateAndRun([ '--publish', '--yes' ]).catch(function(error) {
+              expect(error.message).to.equal("nope");
+            });
+          });
+        });
+
         describe("lifecycle hooks", function () {
           beforeEach(function() {
             repo.respondTo('currentBranch', makeResponder('master'));
@@ -467,7 +606,34 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
               expect(fileExists('after-push.txt'), 'afterPush called').to.be.true;
+              expect(fileExists('after-publish.txt'), 'afterPublish not called').to.be.false;
               expect(assertionCount, 'all assertions ran').to.equal(3);
+            });
+          });
+
+          it("should call `afterPublish` hook when --publish option is set", function () {
+            copyFixture('project-with-hooks-config');
+            var cmd = createCommand();
+            var assertionCount = 0;
+
+            npm.respondTo('whoami', makeResponder(''));
+            npm.respondTo('config', function() {
+              return {
+                get: function() {}
+              };
+            });
+            repo.respondTo('status', makeResponder(''));
+            repo.respondTo('createTag', makeResponder(null));
+            repo.respondTo('push', makeResponder(null));
+            npm.respondTo('publish', function() {
+              expect(fileExists('after-push.txt'), 'afterPush called').to.be.true;
+              expect(fileExists('after-publish.txt'), 'afterPublish not called yet').to.be.false;
+              assertionCount++;
+            });
+
+            return cmd.validateAndRun([ '--publish', '--yes' ]).then(function() {
+              expect(fileExists('after-publish.txt'), 'afterPublish called').to.be.true;
+              expect(assertionCount, 'all assertions ran').to.equal(1);
             });
           });
 
