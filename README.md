@@ -4,7 +4,14 @@
 [![NPM Version](https://badge.fury.io/js/ember-cli-release.svg)](http://badge.fury.io/js/ember-cli-release)
 [![Ember Observer Score](http://emberobserver.com/badges/ember-cli-release.svg)](http://emberobserver.com/addons/ember-cli-release)
 
-Ember CLI addon that defines a `release` command for bumping the version of your app or addon.
+Ember CLI addon that defines a `release` command for bumping the version of your app or addon. It's a streamlined alternative to the [`npm version` command](https://docs.npmjs.com/cli/version), with a number of additional advantages:
+
+- Non-SemVer tagging strategies
+- Config file for:
+  - Custom defaults
+  - Promise-friendly hooks
+- `bower.json` version replacement
+- Annotated tag support
 
 ## Installation
 
