@@ -1,5 +1,11 @@
 # Changelog
 
+### v1.0.0-beta.0 (December 29, 2015)
+
+* Added ability to specify custom tagging strategy
+* Added support for SemVer prerelease versions
+* Added support for NPM publish
+
 ### v0.2.8 (October 19, 2015)
 
 * Hook argument readme clarification (@rwjblue)
