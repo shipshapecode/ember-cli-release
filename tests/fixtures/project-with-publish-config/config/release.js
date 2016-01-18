@@ -1,5 +1,5 @@
 /* jshint node:true */
 
 module.exports = {
-  strategy: 'date'
+  publish: true
 };
