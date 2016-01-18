@@ -1,5 +1,9 @@
 # Changelog
 
+### v1.0.0-beta.1 (January 17, 2016)
+
+* Fixed issue with not being able to specify `pubish` option in config
+
 ### v1.0.0-beta.0 (December 29, 2015)
 
 * Added ability to specify custom tagging strategy
