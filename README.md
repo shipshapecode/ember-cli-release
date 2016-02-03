@@ -13,6 +13,8 @@ Ember CLI addon that defines a `release` command for bumping the version of your
 - `bower.json` version replacement
 - Annotated tag support
 
+[![Introduction to ember-cli-release at Global Ember Meetup](https://i.vimeocdn.com/video/552191750_640x360.png)](https://vimeo.com/152244691)
+
 ## Installation
 
 ```sh
