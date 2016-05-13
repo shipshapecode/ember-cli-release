@@ -454,7 +454,7 @@ describe("release command", function() {
             });
 
             return cmd.validateAndRun([ '--publish' ]).catch(function(error) {
-              expect(error.message).to.equal("Must be logged in to preform NPM publish.");
+              expect(error.message).to.equal("Must be logged in to perform NPM publish.");
             });
           });
 
