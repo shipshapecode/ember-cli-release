@@ -535,11 +535,11 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--publish', '--yes' ]).then(function() {
               expect(publishCalled).to.be.true;
-              expect(ui.output).to.contain("Publish succesful.");
+              expect(ui.output).to.contain("Publish successful.");
             });
           });
 
-          it("should publish if specified in conifig.js", function() {
+          it("should publish if specified in config.js", function() {
             copyFixture('project-with-publish-config');
             var cmd = createCommand();
             var publishCalled = false;
@@ -561,7 +561,7 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--yes' ]).then(function() {
               expect(publishCalled).to.be.true;
-              expect(ui.output).to.contain("Publish succesful.");
+              expect(ui.output).to.contain("Publish successful.");
             });
           });
 
