@@ -1,5 +1,10 @@
 # Changelog
 
+### v1.0.0-beta.2 (June 18, 2016)
+
+* Fixed deprecation warning (@thomblake)
+* Fixed output typos (@elwayman02)
+
 ### v1.0.0-beta.1 (January 17, 2016)
 
 * Fixed issue with not being able to specify `pubish` option in config
