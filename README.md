@@ -1,5 +1,9 @@
 # ember-cli-release
 
+## Maintainers Wanted:
+
+Please reach out to opensource@lytics.io if you would be interested in maintaining this project.
+
 [![Build Status](https://travis-ci.org/lytics/ember-cli-release.svg?branch=master)](https://travis-ci.org/lytics/ember-cli-release)
 [![NPM Version](https://badge.fury.io/js/ember-cli-release.svg)](http://badge.fury.io/js/ember-cli-release)
 [![Ember Observer Score](http://emberobserver.com/badges/ember-cli-release.svg)](http://emberobserver.com/addons/ember-cli-release)
