@@ -1,6 +1,7 @@
 bower_components/
 tests/
 
+.jshintrc
 .bowerrc
 .editorconfig
 .ember-cli
