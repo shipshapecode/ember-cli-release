@@ -7,7 +7,7 @@ var expect = require('chai').expect;
 var semverStrategy = require('../../../lib/strategies/semver');
 
 describe("semver strategy", function() {
-  var tagNames = [ '2.0.0', '2.1.0', '3.0.0', '3.0.1', '3.1.0', '3.1.1' ];
+  var tagNames = [ '2.0.0', '2.1.0', '3.0.0', '3.0.1', '3.1.0', '3.1.1', 'v6.0.990.1' ];
   var project = {};
 
   it("should provide a default tag", function() {

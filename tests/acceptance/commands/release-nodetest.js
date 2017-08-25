@@ -211,6 +211,33 @@ describe("release command", function() {
             repo.respondTo('status', makeResponder(''));
           });
 
+          describe("when an invalid semver tag exists", function() {
+            var invalidTag = {
+              name: 'v6.0.990.1',
+              sha: '7a6d7bb7e5beb1bce2923dd6aea82f8a8e77438b',
+              date: new Date(Date.UTC(2013, 1, 15, 15, 0, 0))
+            };
+
+            beforeEach(function() {
+              tags.splice(1, 0, invalidTag);
+              repo.respondTo('tags', makeResponder(tags));
+            });
+
+            it("should ignore invalid tags", function() {
+              var cmd = createCommand();
+
+              repo.respondTo('createTag', makeResponder(null));
+
+              return cmd.validateAndRun([ '--local', '--yes' ]).then(function() {
+                expect(ui.output).to.contain("Latest tag: " + tags[tags.length - 1].name);
+              });
+            });
+
+            afterEach(function() {
+              tags.splice(1, 1);
+            });
+          });
+
           it("should confirm tag creation and allow aborting", function() {
             var cmd = createCommand();
 
