@@ -2,6 +2,13 @@
   "name": "ember-cli-release",
   "version": "1.0.0-beta.2",
   "description": "Ember CLI addon for managing release versions.",
+  "keywords": [
+    "ember-addon",
+    "ember-cli",
+    "release",
+    "git",
+    "tag"
+  ],
   "directories": {
     "test": "tests"
   },
@@ -10,15 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lytics/ember-cli-release.git"
-  },
-  "engines": {
-    "node": ">= 0.10.0"
+    "url": "https://github.com/shipshapecode/ember-cli-release.git"
   },
   "author": "Steven Lindberg <steven@lytics.io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lytics/ember-cli-release/issues"
+    "url": "https://github.com/shipshapecode/ember-cli-release/issues"
   },
   "dependencies": {
     "chalk": "^1.0.0",
@@ -35,20 +39,19 @@
   },
   "devDependencies": {
     "chai": "^2.1.1",
-    "ember-cli": "1.13.13",
-    "ember-cli-dependency-checker": "1.1.0",
+    "console-ui": "^1.0.2",
+    "ember-cli": "~3.1.2",
+    "ember-cli-dependency-checker": "^2.0.0",
+    "eslint-plugin-ember": "^5.0.0",
+    "eslint-plugin-node": "^6.0.1",
     "fs-extra": "^0.18.0",
     "glob": "^5.0.1",
     "mocha": "^2.2.1",
     "rimraf": "^2.3.2"
   },
-  "keywords": [
-    "ember-addon",
-    "ember-cli",
-    "release",
-    "git",
-    "tag"
-  ],
+  "engines": {
+    "node": "^4.5 || 6.* || >= 7.*"
+  },
   "ember-addon": {
     "configPath": "tests/dummy/config"
   }
