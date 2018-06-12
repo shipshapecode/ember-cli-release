@@ -13,7 +13,7 @@
     "url": "https://github.com/lytics/ember-cli-release.git"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 6"
   },
   "author": "Steven Lindberg <steven@lytics.io>",
   "license": "MIT",
