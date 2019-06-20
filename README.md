@@ -4,6 +4,8 @@
 [![NPM Version](https://badge.fury.io/js/ember-cli-release.svg)](http://badge.fury.io/js/ember-cli-release)
 [![Ember Observer Score](http://emberobserver.com/badges/ember-cli-release.svg)](http://emberobserver.com/addons/ember-cli-release)
 
+*Note: this project is deprecated for node >= 8. Please use [ember-cli-release-tag](https://github.com/mydea/ember-cli-release-tag) instead.*
+
 Ember CLI addon that defines a `release` command for bumping the version of your app or addon. It's a streamlined alternative to the [`npm version` command](https://docs.npmjs.com/cli/version), with a number of additional advantages:
 
 - Non-SemVer tagging strategies
