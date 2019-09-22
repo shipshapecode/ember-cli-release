@@ -352,7 +352,7 @@ describe("release command", function() {
 
             return cmd.validateAndRun([ '--tag', 'foo', '--local' ]).then(function() {
               expect(createdTagName).to.equal('foo');
-              expect(createdTagMessage).to.be.falsey;
+              expect(createdTagMessage).to.be.null;
               expect(ui.output).to.contain("Successfully created git tag '" + createdTagName + "' locally.");
             });
           });
