@@ -4,7 +4,7 @@
 [![NPM Version](https://badge.fury.io/js/ember-cli-release.svg)](http://badge.fury.io/js/ember-cli-release)
 [![Ember Observer Score](http://emberobserver.com/badges/ember-cli-release.svg)](http://emberobserver.com/addons/ember-cli-release)
 
-> **Deprecated**: ember-cli-release is deprecated. We recommend to use [release-it](https://github.com/release-it/release-it#release-it-) instead. In case you consider to automate the changelog generation as well, you might want to consider [rwjblue's setup script](https://github.com/rwjblue/create-rwjblue-release-it-setup#create-rwjblue-release-it-setup). The script automates the setup of release-it with [lerna-changelog](https://github.com/lerna/lerna-changelog) integration.
+> **Deprecated**: ember-cli-release is deprecated. We recommend using [release-it](https://github.com/release-it/release-it#release-it-) instead. If you would like to automate changelog generation as well, you might want to consider [rwjblue's setup script](https://github.com/rwjblue/create-rwjblue-release-it-setup#create-rwjblue-release-it-setup). The script automates the setup of release-it with [lerna-changelog](https://github.com/lerna/lerna-changelog) integration.
 
 Ember CLI addon that defines a `release` command for bumping the version of your app or addon. It's a streamlined alternative to the [`npm version` command](https://docs.npmjs.com/cli/version), with a number of additional advantages:
 
